@@ -5,9 +5,6 @@ function U=CompCont(Vertices,Dimension,UpState,DownState,CodingVector,...
 
 % Determine the optimal decision matrices.
 ControlDimension=length(ODM);
-for i=1:ControlDimension
-    eval(['ODM',int2str(i),'=ODM{i};']);
-end;
 
 % Initialize the control.
 U=0;
@@ -33,9 +30,12 @@ for i=0:Vertices
     VertexProb=prod(UpProb.*BinVect+DownProb.*(~BinVect));
 
     % Get the optimal controls for this vertex.
-    for k=1:ControlDimension
-        eval(['VertexControl(k)=ODM',int2str(k),'(VertexStateNum);'])
-    end;
+    VertexControl = zeros(1,ControlDimension);
+    if ~isnan(VertexStateNum)
+        for k=1:ControlDimension
+            VertexControl(k)= ODM{k}(VertexStateNum);
+        end
+    end
 
     % Add these controls, weighted, to the overall control.
     U=U+VertexProb.*VertexControl;
