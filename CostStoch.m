@@ -1,7 +1,7 @@
 function value=CostStoch(U,DeltaFunction,StageReturnFunction,...
     UserConstraintFunction,StateLB,StateStepSize,TimeStep,...
     DiscountFactor,Dimension,States,CodingVector,StateVars,...
-    PrevValue,...
+    PrevValue,Conf,...
     Noise,NoiseSteps,NoiseProb,NoisyVars) %#ok<INUSL>
 % This is the cost function minimized by fmincon at the policy improvement
 % step of the policy improvement algorithm in the stochastic case.
@@ -12,7 +12,7 @@ DeltaMain=Delta(1:Dimension)*TimeStep;
 DeltaStoch=Delta(Dimension+1:Dimension+NoisyVars)*sqrt(TimeStep);
 
 % Compute the stage return by left hand endpoint rectangular approximation.
-value=feval(StageReturnFunction,U,StateVars,1)*TimeStep;
+value=feval(StageReturnFunction,U,StateVars,1,Cost)*TimeStep;
 
 % Compute the number of vertices.
 Vertices=2^Dimension-1;

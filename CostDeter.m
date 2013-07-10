@@ -1,7 +1,7 @@
 function value=CostDeter(U,DeltaFunction,StageReturnFunction,...
     UserConstraintFunction,StateLB,StateStepSize,TimeStep,...
     DiscountFactor,Dimension,States,CodingVector,StateVars,...
-    PrevValue) %#ok<INUSL>
+    PrevValue,Conf) %#ok<INUSL>
 % This is the cost function minimized by fmincon at the policy improvement
 % step of the policy improvement algorithm in the deterministic case.
 
@@ -9,7 +9,7 @@ function value=CostDeter(U,DeltaFunction,StageReturnFunction,...
 Delta=feval(DeltaFunction,U,StateVars,1).*TimeStep;
 
 % Compute the stage return by left hand endpoint rectangular approximation.
-value=feval(StageReturnFunction,U,StateVars,1)*TimeStep;
+value=feval(StageReturnFunction,U,StateVars,1,Conf)*TimeStep;
 
 % Compute "approximate" state vector. This is where the system evolves to
 % before it is constrained to the state grid.

@@ -1,6 +1,6 @@
 function value=ValDetStoch(DeltaFunction,StageReturnFunction,StateLB,...
     StateStepSize,TimeStep,DiscountFactor,Dimension,States,TotalStates,...
-    CodingVector,U,Noise,NoiseSteps,NoiseProb,NoisyVars)
+    CodingVector,U,Noise,NoiseSteps,NoiseProb,NoisyVars,Conf)
 % This function performs the value determination step of the policy
 % improvement algorithm in the stochastic case.
 
@@ -22,7 +22,7 @@ for StateNum=1:TotalStates
 
     % Compute the stage return by left hand endpoint rectangular
     % approximation.
-    Return(StateNum)=feval(StageReturnFunction,U(StateNum),StateVars,1)...
+    Return(StateNum)=feval(StageReturnFunction,U(StateNum),StateVars,1,Conf)...
         *TimeStep;
     
     % Compute the time derivative vector.

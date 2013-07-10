@@ -117,7 +117,7 @@ xlabel(['x_',int2str(VariableOfInterest)]);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargout==1
-    ControlValues=zeros(TotalStates,ControlDimension);
+    ControlValues=zeros(length(StateVect),ControlDimension);
     for i=1:ControlDimension
         ControlValues(:,i) = eval(['C',int2str(i),]);
     end;
