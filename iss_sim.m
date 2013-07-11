@@ -1,7 +1,6 @@
-function [SimulatedValue, StateEvolution] = iss_sim(InitialCondition, ...
-                                                    ODM, DeltaFunction, ...
-                                                    StageReturnFunction, ...
-                                                    Minimum, Maximum, varargin)
+function [SimulatedValue, StateEvolution, DeltaEvolution, Control] = ...
+        iss_sim(InitialCondition, ODM, DeltaFunction, StageReturnFunction, ...
+                Minimum, Maximum, varargin)
 
   %% Construct options
   Conf = iss_conf(Minimum, Maximum, varargin{:});
@@ -30,7 +29,10 @@ function [SimulatedValue, StateEvolution] = iss_sim(InitialCondition, ...
   %% Predefine empty holders 
   %   to speed execution and improve memory management.
   Control=zeros(TotalSimulationStages,ControlDimension);
+  
   StateEvolution=zeros(TotalSimulationStages+1,Dimension);
+  DeltaEvolution=zeros(TotalSimulationStages,Dimension);
+  
   SimulatedValue=zeros(1,NumberOfSimulations);
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -117,6 +119,8 @@ function [SimulatedValue, StateEvolution] = iss_sim(InitialCondition, ...
         % evolves to before it is constrained to the state grid.
         AppState=(StateVars+Delta-Min)./StateStep+1;
       end; % if StochasticProblem
+      
+      DeltaEvolution(SimulationStage, :) = Delta;
     end; % for SimulationStage=1:TotalSimulationStages
 
     % Record the values of the terminal state and add the terminal
