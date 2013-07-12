@@ -12,6 +12,10 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
   UOptimal=ones(1,Conf.TotalStates);
   
   OCM = cell(Options.ControlDimension);
+  Norms = zeros(1, Options.PolicyIterations);
+  
+  StoppingTolerance = 5*10^(Dimension-5);
+  
   for i=1:Options.PolicyIterations
     
     U=UOptimal;
@@ -23,11 +27,15 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
                                         StateLB, StateUB, Conf);
     
     % Termination criterion.
-    Norm=norm(U-UOptimal);
+    Norms(i) = norm(U-UOptimal);
     fprintf(1,['Iteration Number: ',num2str(i),'. Norm: ',num2str(Norm),'\n']);
-    if Norm<=0.0001
+    if Norms(i) <= StoppingTolerance
       break;
     end;
+    
+    if i >= 4 && all(Norms(i-3:i-1) == Norms(i))
+        fprintf('Last four norms were identical; aborting');
+    end
   end; % for i=1:PolicyIterations
 
   % Print final value and number of policy iterations.

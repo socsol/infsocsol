@@ -1,4 +1,4 @@
-function Options = FminconOptions(ControlDimension, varargin)
+function Options = iss_conf_fmincon(ControlDimension, varargin)
   if nargin > 2 && isstruct(varargin{1})
     Options = optimset(varargin{:});
   else
