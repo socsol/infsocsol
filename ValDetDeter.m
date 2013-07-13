@@ -23,11 +23,11 @@ for StateNum=1:TotalStates
 
     % Compute the stage return by left hand endpoint rectangular
     % approximation.
-    Return(StateNum)=feval(StageReturnFunction,U(StateNum),StateVars,1,Conf)...
+    Return(StateNum)=feval(StageReturnFunction,U(StateNum,:),StateVars,1,Conf)...
         *TimeStep;
     
     % Compute the time derivative vector.
-    Delta=feval(DeltaFunction,U(StateNum),StateVars,1).*TimeStep;
+    Delta=feval(DeltaFunction,U(StateNum,:),StateVars,1).*TimeStep;
 
     % Compute "approximate" state vector. This is where the system evolves
     % to before it is constrained to the state grid.

@@ -8,8 +8,8 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
   Options = Conf.Options;
   Dimension = Conf.Dimension;
   
-  % Initial policy.
-  UOptimal=ones(1,Conf.TotalStates);
+  % Initial policy. FIXME
+  UOptimal = zeros(Conf.TotalStates, Options.ControlDimension);
   
   OCM = cell(Options.ControlDimension);
   Norms = zeros(1, Options.PolicyIterations);
@@ -28,7 +28,7 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
     
     % Termination criterion.
     Norms(i) = norm(U-UOptimal);
-    fprintf(1,['Iteration Number: ',num2str(i),'. Norm: ',num2str(Norm),'\n']);
+    fprintf(1,['Iteration Number: ',num2str(i),'. Norm: ',num2str(Norms(i)),'\n']);
     if Norms(i) <= StoppingTolerance
       break;
     end;

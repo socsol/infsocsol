@@ -71,7 +71,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   %% Use the option (set above) to select a function handle.
   if strcmp(Conf.Options.Optimizer, 'fmincon')
     if isfield(Conf.Options, 'FminconOptions')
-      FminconDefaults = {Conf.Options.FminconOptions};
+      FminconDefaults = Conf.Options.FminconOptions;
     else
       FminconDefaults = {};
     end
