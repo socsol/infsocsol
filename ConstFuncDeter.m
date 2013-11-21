@@ -6,4 +6,4 @@ function [c,ceq] = ConstFuncDeter(U,DeltaFunction,StageReturnFunction,...
 % function, altering its arguments to match those passed in the fmincon
 % calls within InfSOCSol.
     
-[c,ceq]=feval(UserConstraintFunction,U,StateVars,TimeStep,Conf);
+[c,ceq]=feval(UserConstraintFunction,U,StateVars,Conf);
