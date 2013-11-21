@@ -35,14 +35,21 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
                           'SimulationEnd', 250, ...
                           'SimulationTimeStep', ones(1, 250), ...
                           'UserSuppliedNoise', [], ...
+                          'DerivativeCheck', 'off', ...
+                          'Diagnostics', 'off', ...
+                          'DiffMaxChange', 1e-1, ...
+                          'DiffMinChange', 1e-8, ...
+                          'Display', 'off', ...
+                          'LargeScale', 'off', ...
+                          'MaxIter',100, ...
+                          'MaxSQPIter', Inf, ...
+                          'OutputFcn', [], ...
+                          'TolCon', 1e-6, ...
+                          'TolFun', 1e-6, ...
                           'TolX', sqrt(eps), ...
-                          'MaxIter', 100);
+                          'Algorithm', 'active-set');
     
-    if isstruct(varargin{1})
-      Options = varargin{1};
-    else
-      Options = struct(varargin{:});
-    end  
+    Options = struct(varargin{:});
   end
 
   fields = fieldnames(Options);
@@ -55,6 +62,11 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   % Skip the rest unless an option changed or this is a first run.
   if ~InitialSetup && ~OptionsChanged
     return
+  end
+  
+  %% Set the max iterations based on the number of controls.
+  if ~isfield(Conf.Options, 'MaxFunEvals')
+    Conf.Options.MaxFunEvals = 100 * Conf.Options.ControlDimension;
   end
 
   %% An option should state which optimization routine to use.
@@ -70,13 +82,8 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
 
   %% Use the option (set above) to select a function handle.
   if strcmp(Conf.Options.Optimizer, 'fmincon')
-    if isfield(Conf.Options, 'FminconOptions')
-      FminconDefaults = Conf.Options.FminconOptions;
-    else
-      FminconDefaults = {};
-    end
     Conf.FminconOptions = iss_conf_fmincon(Conf.Options.ControlDimension, ...
-                                           FminconDefaults{:});
+                                           Conf.Options);
     
     Conf.Optimizer = @iss_optim_fmincon;
   elseif strcmp(Conf.Options.Optimizer, 'sqp')
