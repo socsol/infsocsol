@@ -82,9 +82,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
 
   %% Use the option (set above) to select a function handle.
   if strcmp(Conf.Options.Optimizer, 'fmincon')
-    Conf.FminconOptions = iss_conf_fmincon(Conf.Options.ControlDimension, ...
-                                           Conf.Options);
-    
+    Conf.FminconOptions = optimset(Conf.Options);
     Conf.Optimizer = @iss_optim_fmincon;
   elseif strcmp(Conf.Options.Optimizer, 'sqp')
     Conf.Optimizer = @iss_optim_sqp;

@@ -3,8 +3,6 @@ function [UOptimal, flag] = iss_optim_fmincon(UStart, Value, StateVars, ...
                                               StageReturnFunction, ...
                                               StateLB, StateUB, Conf)
 
-UStart
-  
 States = Conf.States;
 CodingVector = Conf.CodingVector;
 DiscountFactor = Conf.DiscountFactor;
