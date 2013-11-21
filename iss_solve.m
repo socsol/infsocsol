@@ -49,7 +49,6 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
   OCM = cell(Options.ControlDimension);
   for j=1:Options.ControlDimension
     OCM{j} = UOptimal(:, j);
-    OCM{j}
   end
 
   % Print final value and number of policy iterations.
