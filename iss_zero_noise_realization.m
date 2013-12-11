@@ -13,13 +13,8 @@
 %  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
-function [c,ceq]=ConstFuncStoch(U,DeltaFunction,StageReturnFunction,...
-    UserConstraintFunction,StateLB,StateStepSize,TimeStep,...
-    DiscountFactor,Dimension,States,CodingVector,StateVars,...
-    Value,Conf,...
-    Noise,NoiseSteps,NoiseProb,NoisyVars) %#ok<INUSD,INUSL>
-% This function acts as a 'shell' about the user-defined constraint
-% function, altering its arguments to match those passed in the fmincon
-% calls within InfSOCSol.
-
-[c,ceq]=feval(UserConstraintFunction,U,StateVars,Conf);
+function NoiseRealization = iss_zero_noise_realization(SimulationStage, ...
+                                                  Conf)
+  Dimension = Conf.Dimension;
+  NoiseRealization = zeros(1, Dimension);
+end

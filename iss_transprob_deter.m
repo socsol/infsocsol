@@ -13,13 +13,13 @@
 %  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
-function [c,ceq]=ConstFuncStoch(U,DeltaFunction,StageReturnFunction,...
-    UserConstraintFunction,StateLB,StateStepSize,TimeStep,...
-    DiscountFactor,Dimension,States,CodingVector,StateVars,...
-    Value,Conf,...
-    Noise,NoiseSteps,NoiseProb,NoisyVars) %#ok<INUSD,INUSL>
-% This function acts as a 'shell' about the user-defined constraint
-% function, altering its arguments to match those passed in the fmincon
-% calls within InfSOCSol.
-
-[c,ceq]=feval(UserConstraintFunction,U,StateVars,Conf);
+function TransProb = iss_transprob_deter(DeltaFunction, StateVars, ...
+                                         U, StateLB, StateUB, Conf);
+  
+  StateStepSize = Conf.Options.StateStepSize;
+  TimeStep = Conf.Options.TimeStep;
+  
+  Next = iss_next_euler(DeltaFunction, StateVars, U, TimeStep, 0, Conf);
+  AppState = (Next-StateLB)./StateStepSize+1;
+  TransProb = iss_transprob(AppState, Conf);
+end

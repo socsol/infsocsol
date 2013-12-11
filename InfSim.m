@@ -1,3 +1,18 @@
+
+%%
+%  Copyright 2013 Jacek B. Krawczyk and Alastair Pharo
+%
+%  Licensed under the Apache License, Version 2.0 (the "License");
+%  you may not use this file except in compliance with the License.
+%  You may obtain a copy of the License at
+%
+%      http://www.apache.org/licenses/LICENSE-2.0
+%
+%  Unless required by applicable law or agreed to in writing, software
+%  distributed under the License is distributed on an "AS IS" BASIS,
+%  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%  See the License for the specific language governing permissions and
+%  limitations under the License.
 function SimulatedValue=InfSim(FileName,InitialCondition,...
     SimulationTimeStep,NumberOfSimulations,LineSpec,TimepathOfInterest,...
     UserSuppliedNoise)
@@ -12,27 +27,7 @@ global StateEvolution Control
 %%%             READ PARAMETER FILE            %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Open parameter file.
-[fid,message]=fopen([FileName,'.DPP'],'r');
-
-% Error in opening?
-if fid==-1
-	fprintf(['Error opening ',FileName,'.DPP\n']);
-	error(message);
-end; % if fid==-1
-
-% Read in program parameters.
-DeltaFunction=fscanf(fid,'%s',1);
-StageReturnFunction=fscanf(fid,'%s',1);
-fgets(fid);
-Minimum=MatRead(fid);
-Maximum=MatRead(fid);
-StateStepSize=MatRead(fid);
-TimeStep=MatRead(fid);
-DiscountRate=MatRead(fid); % For "new" files.
-InfSOCSolOptions=MatRead(fid);
-fclose(fid);
-%DiscountRate=InfSOCSolOptions(4); % For "old" files.
+Conf = iss_load_conf(FileName);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%             DEFINE CONSTANTS               %%%
@@ -93,7 +88,8 @@ else
     error('Expected NumberOfSimulations to be a non-zero integer');
 end; % if isnumeric(NumberOfSimulations)&&isreal(NumberOfSimulations)&&...
 
-Conf = iss_conf(Minimum, Maximum, ...
+%% Override any loaded configuration.
+Conf = iss_conf(Minimum, Maximum, Conf, ...
                 'StateStepSize', StateStepSize, ...
                 'TimeStep', TimeStep, ...
                 'DiscountRate', DiscountRate, ...
@@ -170,21 +166,7 @@ VariableDiscretization=VariableMin|VariableMax|VariableStateStep;
 %%%             READ SOLUTION FILE             %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Open solution file.
-[fid,message]=fopen([FileName,'.DPS'],'r');
-
-% Error in opening?
-if fid==-1
-	fprintf(['Error opening ',FileName,'.DPS\n']);
-	error(message);
-end; % if fid==-1
-
-% Read Optimal Decision Matrices for each control dimension.
-ODM=cell(1,ControlDimension);
-for i=1:ControlDimension
-	eval(['ODM{1,',int2str(i),'}=MatRead(fid);'])
-end;
-fclose(fid);
+ODM = iss_load_solution(Conf);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%        COMPUTE AND PLOT TRAJECTORIES       %%%

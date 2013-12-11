@@ -1,6 +1,25 @@
-function Value = iss_valdet(U, DeltaFunction, StageReturnFunction, ...
-                            StateLB, StateUB, Conf)
- 
+
+%%
+%  Copyright 2013 Jacek B. Krawczyk and Alastair Pharo
+%
+%  Licensed under the Apache License, Version 2.0 (the "License");
+%  you may not use this file except in compliance with the License.
+%  You may obtain a copy of the License at
+%
+%      http://www.apache.org/licenses/LICENSE-2.0
+%
+%  Unless required by applicable law or agreed to in writing, software
+%  distributed under the License is distributed on an "AS IS" BASIS,
+%  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%  See the License for the specific language governing permissions and
+%  limitations under the License.
+%% ISS_VALDET
+% This function performs the value determination step of the policy
+% improvement algorithm
+function value=iss_valdet(UCell, DeltaFunction, StageReturnFunction, ...
+                                StateLB, StateUB, Conf)
+  
+  %% Extract options
   Dimension = Conf.Dimension;
   States = Conf.States;
   TotalStates = Conf.TotalStates;
@@ -8,14 +27,40 @@ function Value = iss_valdet(U, DeltaFunction, StageReturnFunction, ...
   DiscountFactor = Conf.DiscountFactor;
   Options = Conf.Options;
   
-  if Options.StochasticProblem
-    Value = ValDetStoch(DeltaFunction,StageReturnFunction,StateLB,...
-                        Options.StateStepSize,Options.TimeStep,DiscountFactor,Dimension,States,...
-                        TotalStates,CodingVector,U,...
-                        Options.Noise,Options.NoiseSteps,Options.NoiseProb,Options.NoisyVars,Conf);
-  else
-    Value = ValDetDeter(DeltaFunction,StageReturnFunction,StateLB, ...
-                        Options.StateStepSize,Options.TimeStep,DiscountFactor, ...
-                        Dimension,States, TotalStates,CodingVector,U,Conf);
-  end % if StochasticProblem
+  StateStepSize = Options.StateStepSize;
+  TimeStep = Options.TimeStep;
+
+  % This will differ depending on whether system is stochasic or not.
+  TransProbFn = Conf.TransProbFn;
+
+  %% Create a cell array of states.
+  StateCell = Conf.CellFn(@(StateNum) ...
+                          SVecToSVars(SnToSVec(StateNum, ...
+                                               CodingVector, ...
+                                               Dimension), ...
+                                      StateLB, ...
+                                      Conf), ...
+                          num2cell((1:TotalStates)'), ...
+                          'UniformOutput', false);
+  
+  %% Work out the scalar cost at each state.
+  Return = Conf.CellFn(@(StateVars, U) ...
+                       iss_cost_compute(StageReturnFunction, ...
+                                        U, StateVars, ...
+                                        TimeStep, Conf), ...
+                       StateCell, UCell);
+  
+  %% Compute transition probabilities.
+  TransProbCell = Conf.CellFn(@(StateVars, U) ...
+                              TransProbFn(DeltaFunction, ...
+                                          StateVars, U, ...
+                                          StateLB, StateUB, Conf), ...
+                              StateCell, UCell, ...
+                              'UniformOutput', false);
+    
+  %% Combine the transition probabilities into a matrix.
+  TransProb = cell2mat(TransProbCell);
+  
+  %% Solve the system to get the value.  
+  value=(eye(TotalStates)-DiscountFactor*TransProb)\Return;
 end
