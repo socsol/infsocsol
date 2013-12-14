@@ -1,0 +1,20 @@
+//using octave;
+using matlab;
+
+// Add infsocsol to the path.
+matlab_addpath = matlab_call "addpath" 0;
+matlab_addpath $ __dir__ + "..";
+
+// Setup calls to the main functions
+iss_solve = matlab_call "iss_solve" 4;
+iss_conf  = matlab_call "iss_conf" 1;
+
+using puritan;
+using namespace puritan;
+
+let tests = init_tests "InfSOCSol";
+
+prefix 1250 !: ;
+#! --quoteargs !:
+#! --defined !:
+def !: x = add_test tests x;
