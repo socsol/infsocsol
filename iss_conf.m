@@ -90,7 +90,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   Conf.Options = iss_conf_validate(StateLB, StateUB, Conf.Options);
   
   %% Figure out what system this is
-  if exist('octave_config_info', 'file')
+  if exist('octave_config_info', 'builtin')
     Conf.System = 'octave';
   else
     Conf.System = 'matlab';
@@ -122,7 +122,8 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   if (Conf.Options.PoolSize > 1)
     if exist('parcellfun', 'file')
       Conf.CellFn = ...
-          @(varargin) parcellfun(Conf.Options.PoolSize, varargin{:});
+          @(varargin) parcellfun(Conf.Options.PoolSize, varargin{:}, ...
+                                 'VerboseLevel', 0);
     elseif exist('parfor', 'builtin') == 5
       Conf.CellFn = ...
           @(varargin) iss_cellfun_parfor(Conf.Options.PoolSize, varargin{:}) ;
