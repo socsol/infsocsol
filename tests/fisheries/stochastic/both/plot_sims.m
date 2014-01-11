@@ -10,9 +10,13 @@ figure;
 hold on
 plot_kernel;
 
-matlabpool(2);
-for i = 1:2:size(pts,1)
-  [value, states, deltas, control] = iss_sim(pts(i,:), ocm, delta_fn, ...
+if strcmp(conf.System, 'matlab')
+  matlabpool(2);
+end
+
+tic
+for i = 1:5:size(V,1)
+  [value, states, deltas, control] = iss_sim(V(i,:), ocm, delta_fn, ...
                                              cost_fn, state_lb, ...
                                              state_ub, ...
                                              conf);
@@ -22,4 +26,8 @@ for i = 1:2:size(pts,1)
          'Color', [j/length(value), 0.5, 1]);
   end
 end
-matlabpool close
+toc
+
+if strcmp(conf.System, 'matlab')
+  matlabpool close
+end
