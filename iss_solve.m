@@ -21,7 +21,7 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
   Conf = iss_conf(StateLB, StateUB, varargin{:});
 
   open_pool = 0;
-  %  try
+  try
     if (Conf.Options.PoolSize > 1 && strcmp(Conf.System, 'matlab'))
       if matlabpool('size') == 0
         open_pool = 1;
@@ -93,21 +93,17 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
       fprintf(1,'All iterations were used.\n');
     end
     
-    if (Conf.Options.PoolSize > 1)
-      % Close the pool here, for speed.
+    if open_pool
+      matlabpool close
     end
+  catch
+    exception = lasterror();
 
     if open_pool
       matlabpool close
     end
-    %  catch
-    %    exception = lasterror();
-    %
-    %    if open_pool
-    %      matlabpool close
-    %    end
 
-    %    exception.stack(2)
-    %    rethrow(exception);
-    %  end
+    %exception.stack(2)
+    rethrow(exception);
+  end
 end
