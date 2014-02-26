@@ -21,7 +21,7 @@
 % See also: cellfun, parcellfun, parfor
 
 %%
-%  Copyright 2013 Jacek B. Krawczyk and Alastair Pharo
+%  Copyright 2014 Jacek B. Krawczyk and Alastair Pharo
 %
 %  Licensed under the Apache License, Version 2.0 (the "License");
 %  you may not use this file except in compliance with the License.
@@ -36,110 +36,80 @@
 %  limitations under the License.
 function varargout = iss_cellfun_parfor(numprocs, fun, varargin)
 
-    if (nargin < 3)
-        error('There must be at least one cell as input');
+  % We need to track this here as apparently parfor breaks it somehow.
+  nret = nargout;
+
+
+  %% Work out what inputs are cell arrays.
+  % Unless we discover otherwise, all inputs are cells.
+  cells = varargin;
+  for i = 1:numel(varargin)
+    if ~iscell(varargin{i})
+      cells = varargin(1:i-1);
+      break;
     end
+  end
+
+  if numel(cells) < 1
+    error('There must be at least one cell as input');
+  end
 
 
-    %% nret gives the number of return values to work with.
-    if (nargout(fun) >= 1)
-        nret = nargout(fun);
-    else
-        nret = nargout;
+  %% Any remaining inputs should be name:value pairs.
+  % We need to know the 'uniform output' setting, but nothing else.
+  if (i < length(varargin))
+    options = struct(varargin{i:end});
+    uniform_output = isfield(options, 'UniformOutput') && options.UniformOutput;
+  else
+    options = struct();
+    uniform_output = true;
+  end
+
+
+  %% Break up the calls into lists of arguments.
+  % Each cell in 'args' represents a call to 'fun'
+  args = cellfun(@(varargin) varargin, cells{:}, ...
+                 'UniformOutput', false);
+
+
+  %% Start the pool, unless its already started
+  handle_pool = 0;
+  if matlabpool('size') == 0 && isempty(getCurrentJob)
+    handle_pool = 1;
+    matlabpool(numprocs);
+  end
+
+
+  %% Make the function calls in parallel.
+  ret = cell(1, numel(cells{1}));
+  try
+    parfor i = 1:numel(cells{1})
+      ret{i} = cell(1, nret);
+      [ret{i}{:}] = fun(args{i}{:});
     end
-
-
-    %% Work out what inputs are cell arrays.
-    cells = cell(1, length(varargin));
-    for i = 1:length(varargin)
-        if (~iscell(varargin{i}))
-            break;
-        end
-
-        cells{i} = varargin{i};
-    end
-
-    %% Any remaining inputs should be name:value pairs.
-    if (i < length(varargin))
-        cells = cells(1:i-1);
-        options = struct(varargin{i:end});
-    else
-        options = struct();
-    end
-
-    %% Check that all the cell arrays have the same size (if there's more than one).
-    if (length(cells) > 1)
-        chksize = size(cells{1});
-        checks = cellfun(@(x) all(size(x) == chksize), cells(2:end));
-        if (~all(checks))
-            error('All cell arrays must have the same dimensions.');
-        end
-    end
-
-    %% Create the return cell array.
-    varargout = cell(nret,1);
-    for v = 1:nret
-        if (~isfield(options, 'UniformOutput') || options.UniformOutput)
-            varargout{v} = zeros(size(cells{1}));
-        else
-            varargout{v} = cell(size(cells{1}));
-        end
-    end
-
-    %% Construct argument arrays for each function call.
-    args = cell(length(cells{1}),length(cells));
-    for i = 1:length(cells{1})
-        for j = 1:length(cells)
-            c = cells{j};
-            args(i,j) = c(i);
-        end
-    end
-
-    %% Start the pool, unless its already started
-    handle_pool = 0;
-    if matlabpool('size') == 0
-      handle_pool = 1;
-      matlabpool(numprocs);
-    end
-
-    %% Make the function calls in parallel.
-    try
-        ret = cell(size(cells{1}));
-        parfor i = 1:length(cells{1})
-            r = cell(1, nret);
-            [r{:}] = fun(args{i,:});
-            ret{i} = r;
-        end
-    catch exception
-        matlabpool close;
-        rethrow(exception);
-    end
-
-    %% Close the pool
+  catch exception
     if handle_pool
       matlabpool close;
     end
+    rethrow(exception);
+  end
 
-    %% Distribute the function call results (not in parallel).
-    for i = 1:length(cells{1})
-        r = ret{i};
-        for v = 1:nret
-            if (~isfield(options, 'UniformOutput') || options.UniformOutput)
-                % Retrieve the v-th return array
-                arr = varargout{v};
-                % Update the i-th element
-                arr(i) = r{v};
-                % Set the v-th array to reflect the update
-                varargout{v} = arr;
-            else
-                % Retrieve the v-th return cell
-                c = varargout{v};
-                % Update the i-th element
-                c{i} = r{v};
-                % Set the v-th cell to reflect the update
-                varargout{v} = c;
-            end
-        end
-    end
+
+  %% Close the pool
+  if handle_pool
+    matlabpool close;
+  end
+
+
+  %% Construct the output cell arrays
+  varargout = cellfun(@(varargin) reshape(varargin, size(cells{1})), ret{:}, ...
+                      'UniformOutput', false);
+
+
+  % If we are to give uniform output, convert each cell array to
+  % a matrix.
+  if uniform_output
+    varargout = cellfun(@cell2mat, varargout, ...
+                        'UniformOutput', false);
+  end
 end
-

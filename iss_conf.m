@@ -1,6 +1,6 @@
 
 %%
-%  Copyright 2013 Jacek B. Krawczyk and Alastair Pharo
+%  Copyright 2014 Jacek B. Krawczyk and Alastair Pharo
 %
 %  Licensed under the Apache License, Version 2.0 (the "License");
 %  you may not use this file except in compliance with the License.
@@ -129,10 +129,9 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
           @(varargin) iss_cellfun_parfor(Conf.Options.PoolSize, varargin{:}) ;
     else
       warning('PoolSize > 1, but no parallel capabilities could be detected.');
+      Conf.CellFn = @cellfun;
     end
-  end
-  
-  if (~isfield(Conf, 'CellFn'))
+  else
     Conf.CellFn = @cellfun;
   end
 
