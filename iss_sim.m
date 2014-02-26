@@ -28,7 +28,7 @@ function [SimulatedValue, StateEvolution, DeltaEvolution, Control] = ...
   %%%                 MAIN LOOP                  %%%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  %% We use the cell fn to compute the trajectories in parallel
+  %% We use the array fn to compute the trajectories in parallel
   % However, every run is identical, due to the only difference
   % being the random numbers produced.  Hence, the function f makes
   % no use of i.
@@ -36,6 +36,6 @@ function [SimulatedValue, StateEvolution, DeltaEvolution, Control] = ...
                               StageReturnFunction, Minimum, Maximum, Conf);
 
   [SimulatedValue, StateEvolution, DeltaEvolution, Control] = ...
-      Conf.CellFn(f, cell(1,NumberOfSimulations), ...
-                  'UniformOutput', false);
+      Conf.ArrayFn(f, 1:NumberOfSimulations, ...
+                   'UniformOutput', false);
 end

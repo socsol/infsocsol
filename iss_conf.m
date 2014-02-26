@@ -50,6 +50,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
                           'NumberOfSimulations', 1, ...
                           'SimulationEnd', 250, ...
                           'SimulationTimeStep', ones(1, 250), ...
+                          'TransProbMin', 0.01, ... % i.e. 1 percent
                           'UserSuppliedNoise', -1, ...
                           'DerivativeCheck', 'off', ...
                           'Diagnostics', 'off', ...
@@ -117,22 +118,41 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
     error(['Unknown optimizer selected: ', Conf.Options.Optimizer]);
   end
   
-  %% Setup a "cell function"
+  %% Setup a cell and array functions
   % This is used to handle parallel processing.
   if (Conf.Options.PoolSize > 1)
     if exist('parcellfun', 'file')
       Conf.CellFn = ...
           @(varargin) parcellfun(Conf.Options.PoolSize, varargin{:}, ...
                                  'VerboseLevel', 0);
+    elseif exist('distributed', 'file') == 2
+      Conf.CellFn = ...
+          @(varargin) iss_cellfun_distributed(Conf.Options.PoolSize, varargin{:});
     elseif exist('parfor', 'builtin') == 5
       Conf.CellFn = ...
-          @(varargin) iss_cellfun_parfor(Conf.Options.PoolSize, varargin{:}) ;
+          @(varargin) iss_cellfun_parfor(Conf.Options.PoolSize, varargin{:});
     else
       warning('PoolSize > 1, but no parallel capabilities could be detected.');
       Conf.CellFn = @cellfun;
     end
+
+    if exist('pararrayfun', 'file')
+      Conf.ArrayFn = ...
+          @(varargin) pararrayfun(Conf.Options.PoolSize, varargin{:}, ...
+                                  'VerboseLevel', 0);
+    elseif exist('distributed', 'file') == 2
+      Conf.ArrayFn = ...
+          @(varargin) iss_arrayfun_distributed(Conf.Options.PoolSize, varargin{:});
+    elseif exist('parfor', 'builtin') == 5
+      Conf.ArrayFn = ...
+          @(varargin) iss_arrayfun_parfor(Conf.Options.PoolSize, varargin{:});
+    else
+      warning('PoolSize > 1, but no parallel capabilities could be detected.');
+      Conf.ArrayFn = @arrayfun;
+    end    
   else
     Conf.CellFn = @cellfun;
+    Conf.ArrayFn = @arrayfun;
   end
 
   %% Construct coding vector and friends
@@ -140,6 +160,13 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   c=cumprod(Conf.States);
   Conf.TotalStates=c(Conf.Dimension);
   Conf.CodingVector=[1,c(1:Conf.Dimension-1)];
+  
+  %% Determine whether sparse matrices are required
+  % This is completely arbitrary at the moment.
+  Conf.UseSparse = Conf.TotalStates > 5000;  
+  if Conf.UseSparse
+    fprintf('Using sparse matrices (%i states)\n', Conf.TotalStates);
+  end
 
   %% Compute discount factor
   Conf.DiscountFactor = Dis(Conf.Options.DiscountRate, ...

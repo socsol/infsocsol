@@ -24,7 +24,11 @@ function TransProb = iss_transprob(AppState, Conf)
       iss_up_down_state(AppState, Conf);
 
   % Create a row vector for the transition probabilities.
-  TransProb=zeros(1,TotalStates);
+  if Conf.UseSparse
+    TransProb=sparse(1,TotalStates);
+  else
+    TransProb=zeros(1,TotalStates);
+  end
   
   % Compute the return for this by weighting the cost to go at each node
   % by its associated transition probability for each of the 2^Dimension
@@ -39,8 +43,11 @@ function TransProb = iss_transprob(AppState, Conf)
     % Compute the state number corresponding to the state vector.
     VertexStateNum=(Vertex-1)*CodingVector'+1;	
     
-    % Compute the probability of being at that vertex.
-    TransProb(VertexStateNum)=prod(UpProb.*BinVect+DownProb...
-                                   .*(~BinVect));
+    % Compute the probability of being at that vertex.  If we are
+    % using a sparse matrix, we ignore low probabilities.
+    prob = prod(UpProb.*BinVect+DownProb .* (~BinVect));
+    if ~Conf.UseSparse || prob >= Conf.Options.TransProbMin
+      TransProb(VertexStateNum) = prob;
+    end
   end; % for i=0:Vertices
 end
