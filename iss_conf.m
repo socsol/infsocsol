@@ -14,10 +14,10 @@
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
 function Conf = iss_conf(StateLB, StateUB, varargin)
-  
+
   InitialSetup = 0;
   OptionsChanged = 0;
-  
+
   if nargin > 2 && isstruct(varargin{1})
     Conf = varargin{1};
     if length(varargin) > 1 && isstruct(varargin{2})
@@ -38,6 +38,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
                           'beq', [], ...
                           'ControlLB', -Inf, ...
                           'ControlUB', Inf, ...
+                          'Debug', 0, ...
                           'UserConstraintFunctionFile', [], ...
                           'ControlDimension', 1, ...
                           'PolicyIterations', 25, ...
@@ -66,7 +67,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
                           'TolX', 1e-6, ...
                           'Algorithm', 'active-set', ...
                           'UseParallel', 'never');
-    
+
     Options = struct(varargin{:});
   end
 
@@ -76,20 +77,20 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
     Conf.Options.(f) = Options.(f);
     OptionsChanged = 1;
   end
-  
+
   % Skip the rest unless an option changed or this is a first run.
   if ~InitialSetup && ~OptionsChanged
     return
   end
-    
+
   %% Set the max iterations based on the number of controls.
   if ~isfield(Conf.Options, 'MaxFunEvals')
     Conf.Options.MaxFunEvals = 100 * Conf.Options.ControlDimension;
   end
-  
+
   %% Perform option validation
   Conf.Options = iss_conf_validate(StateLB, StateUB, Conf.Options);
-  
+
   %% Figure out what system this is
   if exist('octave_config_info', 'builtin')
     Conf.System = 'octave';
@@ -117,7 +118,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   else
     error(['Unknown optimizer selected: ', Conf.Options.Optimizer]);
   end
-  
+
   %% Setup a cell and array functions
   % This is used to handle parallel processing.
   if (Conf.Options.PoolSize > 1)
@@ -160,7 +161,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   c=cumprod(Conf.States);
   Conf.TotalStates=c(Conf.Dimension);
   Conf.CodingVector=[1,c(1:Conf.Dimension-1)];
-  
+
   %% Determine whether sparse matrices are required
   % This is completely arbitrary at the moment.
   Conf.UseSparse = Conf.TotalStates > 5000;  
@@ -171,7 +172,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   %% Compute discount factor
   Conf.DiscountFactor = Dis(Conf.Options.DiscountRate, ...
                             Conf.Options.TimeStep);
-  
+
   %% Setup simulation config
   Conf.Vertices = 2^Conf.Dimension-1;
   Conf.TotalSimulationStages = ...
@@ -179,7 +180,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   Conf.Time = cumsum(Conf.Options.TimeStep);
   Conf.SimTime = [0,cumsum(Conf.Options.SimulationTimeStep)];
   Conf.ControlTime = Conf.SimTime(1:end-1);
-  
+
   %% Determine user constraint function to use based on stochasticity
   % For legacy reasons theres some weird variable switching here.
   Conf.UserConstraintFunction = '';
@@ -194,24 +195,27 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
       Conf.UserConstraintFunctionFile='ConstFuncDeter';
     end
   end
-    
+
 
   %% Select functions to use based on stochasticity
   % These functions all have the same signature, but behave
   % differently
   if Conf.Options.StochasticProblem
     Conf.NextFn = @iss_next_euler_muruyama;
-    
+
     if Conf.Options.UserSuppliedNoise == -1
       Conf.SimNoiseFn = @iss_normal_noise_realization;
     else
       Conf.SimNoiseFn = @iss_user_supplied_noise_realization;
     end
-    
+
     Conf.TransProbFn = @iss_transprob_stoch;
   else
     Conf.NextFn = @iss_next_euler;
     Conf.SimNoiseFn = @iss_zero_noise_realization;
     Conf.TransProbFn = @iss_transprob_deter;
   end
+
+  %% For convenience
+  Conf.Debug = Conf.Options.Debug;
 end

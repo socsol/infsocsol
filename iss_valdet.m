@@ -18,7 +18,7 @@
 % improvement algorithm
 function value=iss_valdet(UCell, DeltaFunction, StageReturnFunction, ...
                                 StateLB, StateUB, Conf)
-  
+
   %% Extract options
   Dimension = Conf.Dimension;
   States = Conf.States;
@@ -26,7 +26,7 @@ function value=iss_valdet(UCell, DeltaFunction, StageReturnFunction, ...
   CodingVector = Conf.CodingVector;
   DiscountFactor = Conf.DiscountFactor;
   Options = Conf.Options;
-  
+
   StateStepSize = Options.StateStepSize;
   TimeStep = Options.TimeStep;
 
@@ -34,6 +34,9 @@ function value=iss_valdet(UCell, DeltaFunction, StageReturnFunction, ...
   TransProbFn = Conf.TransProbFn;
 
   %% Create a cell array of states.
+  if Conf.Debug
+    fprintf('     + Constructing states ... ');
+  end
   StateCell = Conf.ArrayFn(@(StateNum) ...
                            SVecToSVars(SnToSVec(StateNum, ...
                                                 CodingVector, ...
@@ -42,23 +45,62 @@ function value=iss_valdet(UCell, DeltaFunction, StageReturnFunction, ...
                                        Conf), ...
                            (1:TotalStates)', ...
                            'UniformOutput', false);
-  
+  if Conf.Debug
+    fprintf('done.\n');
+  end
+
   %% Work out the scalar cost at each state.
+  if Conf.Debug
+    fprintf('     + Computing cost at each state ... ');
+  end
   Return = Conf.CellFn(@(StateVars, U) ...
                        iss_cost_compute(StageReturnFunction, ...
                                         U, StateVars, ...
                                         TimeStep, Conf), ...
                        StateCell, UCell);
-  
+  if Conf.Debug
+    fprintf('done.\n');
+  end
+
   %% Compute transition probabilities.
   % Each CellFn call returns a column.  We then combine the columns
   % to make a matrix.
-  TransProb = cell2mat(Conf.CellFn(@(StateVars, U) ...
-                                   TransProbFn(DeltaFunction, ...
-                                               StateVars, U, ...
-                                               StateLB, StateUB, Conf), ...
-                                   StateCell, UCell, ...
-                                   'UniformOutput', false));
+  if Conf.Debug
+    fprintf('     + Computing transition probabilities ... ');
+    tprob_start = tic();
+  end
+  TransProbCell = Conf.CellFn(@(StateVars, U) ...
+                              TransProbFn(DeltaFunction, ...
+                                          StateVars, U, ...
+                                          StateLB, StateUB, Conf), ...
+                              StateCell, UCell, ...
+                              'UniformOutput', false);
+  if Conf.Debug
+    tprob_elapsed = toc(tprob_start);
+    fprintf('done (%fs; %fs/state).\n', ...
+            tprob_elapsed, ...
+            tprob_elapsed / TotalStates);
+  end
+
+
+  %% Combine transition probabilities
+  if Conf.Debug
+    fprintf('     + Combining transition probabilities ... ');
+  end
+
+  if Conf.UseSparse
+    TransProb = sparse(TotalStates, TotalStates);
+  else
+    TransProb = zeros(TotalStates, TotalStates);
+  end
+
+  for i = 1:TotalStates
+    TransProb(i,:) = TransProbCell{i};
+  end
+
+  if Conf.Debug
+    fprintf('done.\n');
+  end
 
 
   %% Solve the system to get the value.
@@ -67,6 +109,12 @@ function value=iss_valdet(UCell, DeltaFunction, StageReturnFunction, ...
   else
     identity = eye(TotalStates);
   end
-  
+
+  if Conf.Debug
+    fprintf('     + Matrix inversion ... ');
+  end
   value=(identity-DiscountFactor*TransProb)\Return;
+  if Conf.Debug
+    fprintf('done.\n');
+  end
 end

@@ -14,12 +14,12 @@
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
 function TransProb = iss_transprob(AppState, Conf)
-  
+
   CodingVector = Conf.CodingVector;
   Dimension = Conf.Dimension;
   TotalStates = Conf.TotalStates;
   Vertices = Conf.Vertices;
-  
+
   [UpState, UpProb, DownState, DownProb] = ...
       iss_up_down_state(AppState, Conf);
 
@@ -29,20 +29,20 @@ function TransProb = iss_transprob(AppState, Conf)
   else
     TransProb=zeros(1,TotalStates);
   end
-  
+
   % Compute the return for this by weighting the cost to go at each node
   % by its associated transition probability for each of the 2^Dimension
   % possible transition states.
   for VertexNum=0:Vertices
     % Reduce the vertex number to binary in a vector
     BinVect = iss_binvect(VertexNum, Conf);
-    
+
     % Compute the state vector for the current vertex.
     Vertex=UpState.*BinVect+DownState.*(~BinVect);
 
     % Compute the state number corresponding to the state vector.
     VertexStateNum=(Vertex-1)*CodingVector'+1;	
-    
+
     % Compute the probability of being at that vertex.  If we are
     % using a sparse matrix, we ignore low probabilities.
     prob = prod(UpProb.*BinVect+DownProb .* (~BinVect));
@@ -50,4 +50,13 @@ function TransProb = iss_transprob(AppState, Conf)
       TransProb(VertexStateNum) = prob;
     end
   end; % for i=0:Vertices
+
+  %% I'm not certain that this is actually necessary.
+  % % Make sure that at most 25% of the values are populated (so kill
+  % % values less than the median twice)
+  % if Conf.UseSparse
+  %   for m = 1:2
+  %     TransProb(TransProb < median(TransProb)) = 0;
+  %   end
+  % end
 end

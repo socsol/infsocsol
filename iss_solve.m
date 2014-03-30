@@ -47,31 +47,58 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
     StoppingTolerance = 5*10^(Dimension-5);
     
     for i=1:Options.PolicyIterations
+      if Conf.Debug
+        fprintf(' * Iteration #%i:\n', i);
+      else
+        fprintf(' * Iteration #%i ... ', i);
+      end
+
+      if Conf.Debug
+        fprintf('   - Value determination:\n');
+      end
       Value = iss_valdet(UOptimal, DeltaFunction, StageReturnFunction, ...
                          StateLB, StateUB, Conf);
+      if Conf.Debug
+        fprintf('   - Value determination completed.\n');
+      end
 
+      if Conf.Debug
+        fprintf('   - Policy improvement ... ');
+        polimp_start = tic();
+      end
       UOld = UOptimal;
       [UOptimal, Flags] = iss_polimp(Value, DeltaFunction, ...
                                      StageReturnFunction, StateLB, ...
                                      StateUB, Conf);
+      if Conf.Debug
+        polimp_elapsed = toc(polimp_start);
+        fprintf('done (%fs; %fs/state).\n', ...
+                polimp_elapsed, ...
+                polimp_elapsed / Conf.TotalStates);
+      end
 
       % Termination criterion.
-      if i > 1
+      if Conf.Debug
+        fprintf('   - Iteration #%i ', i);
+      end
+      if i == 1
+        fprintf('completed.\n', i);
+      else
         m1 = cell2mat(UOld);
         m2 = cell2mat(UOptimal);
         diffs =  m1(:) - m2(:);
         Norms(i) = norm(diffs);
-        fprintf(1, ...
-                ['Iteration Number: %i; Norm: %f; # of Differences: %i\n'], ...
-                i, Norms(i), length(find(diffs ~= 0)));
+        fprintf(['completed; norm: %f; # of ' ...
+                 'differences: %i.\n'], Norms(i), length(find(diffs ~= 0)));
 
         if Norms(i) <= StoppingTolerance
+          fprintf(['   - Norm is less than stopping tolerance of %f; Stopping.\n'], StoppingTolerance);
           break;
         end
       end
       
       if i >= 4 && all(Norms(i-3:i-1) == Norms(i))
-        fprintf('Last four norms were identical; aborting');
+        fprintf('   - Last four norms were identical; aborting.\n');
         break;
       end
     end; % for i=1:PolicyIterations
@@ -84,15 +111,15 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
 
     % Print final value and number of policy iterations.
     FinalValue=Value(Conf.TotalStates);
-    fprintf(1,'Final value determination: %f\n',FinalValue);
-    fprintf(1,['Number of policy iterations: ',num2str(i),'\n']);
+    fprintf('\n * Final value determination: %f\n', FinalValue);
+    fprintf(' * Number of policy iterations: %i\n', i);
 
     % Print final norm if the number of iterations used failed to take it under
     % 0.001.
     if i==Options.PolicyIterations
-      fprintf(1,'All iterations were used.\n');
+      fprintf(' * All iterations were used.\n');
     end
-    
+
     if open_pool
       matlabpool close
     end
