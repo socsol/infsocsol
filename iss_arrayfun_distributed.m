@@ -35,7 +35,7 @@ function varargout = iss_arrayfun_distributed(numprocs, fun, varargin)
     handle_pool = 1;
     matlabpool(numprocs);
   end
-  
+
 
   %% Work out what inputs are cell arrays.
   arrays = varargin;
@@ -51,8 +51,8 @@ function varargout = iss_arrayfun_distributed(numprocs, fun, varargin)
     options{j} = varargin{i+j-1};
   end
 
-  % This shouldn't happen, but if this function is called inside a
-  % worker, don't try to distribute again.
+  % If this function is called inside a worker, don't try to distribute
+  % again.
   if isempty(getCurrentJob)
     darrays = cell(size(arrays));
     for i = 1:length(darrays)
@@ -61,13 +61,26 @@ function varargout = iss_arrayfun_distributed(numprocs, fun, varargin)
   else
     darrays = arrays;
   end
+  arrays = []; % for memory
 
 
   %% Pass a distributed cell to cellfun
   varargout = cell(1, nargout);
-  [varargout{:}] = arrayfun(fun, darrays{:}, options{:});
-  
-  
+
+  try
+    [varargout{:}] = arrayfun(fun, darrays{:}, options{:});
+  catch exception
+    fprintf('Error:\n');
+    disp(exception);
+
+    if handle_pool
+      matlabpool close;
+    end
+
+    rethrow(exception);
+  end
+
+
   %% Get the results back onto the local machine
   for i = 1:nargout
     varargout{i} = gather(varargout{i});

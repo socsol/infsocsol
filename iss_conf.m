@@ -126,12 +126,12 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
       Conf.CellFn = ...
           @(varargin) parcellfun(Conf.Options.PoolSize, varargin{:}, ...
                                  'VerboseLevel', 0);
-    elseif exist('distributed', 'file') == 2
-      Conf.CellFn = ...
-          @(varargin) iss_cellfun_distributed(Conf.Options.PoolSize, varargin{:});
     elseif exist('parfor', 'builtin') == 5
       Conf.CellFn = ...
           @(varargin) iss_cellfun_parfor(Conf.Options.PoolSize, varargin{:});
+    elseif exist('distributed', 'file') == 2
+      Conf.CellFn = ...
+          @(varargin) iss_cellfun_distributed(Conf.Options.PoolSize, varargin{:});
     else
       warning('PoolSize > 1, but no parallel capabilities could be detected.');
       Conf.CellFn = @cellfun;
@@ -141,16 +141,16 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
       Conf.ArrayFn = ...
           @(varargin) pararrayfun(Conf.Options.PoolSize, varargin{:}, ...
                                   'VerboseLevel', 0);
-    elseif exist('distributed', 'file') == 2
-      Conf.ArrayFn = ...
-          @(varargin) iss_arrayfun_distributed(Conf.Options.PoolSize, varargin{:});
     elseif exist('parfor', 'builtin') == 5
       Conf.ArrayFn = ...
           @(varargin) iss_arrayfun_parfor(Conf.Options.PoolSize, varargin{:});
+    elseif exist('distributed', 'file') == 2
+      Conf.ArrayFn = ...
+          @(varargin) iss_arrayfun_distributed(Conf.Options.PoolSize, varargin{:});
     else
       warning('PoolSize > 1, but no parallel capabilities could be detected.');
       Conf.ArrayFn = @arrayfun;
-    end    
+    end
   else
     Conf.CellFn = @cellfun;
     Conf.ArrayFn = @arrayfun;

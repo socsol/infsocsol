@@ -36,29 +36,36 @@
 %  limitations under the License.
 function varargout = iss_arrayfun_parfor(numprocs, fun, varargin)
 
-  % We need to track this here as apparently parfor breaks it somehow.
-  nret = nargout;
+
+  %% nret gives the number of return values to work with.
+  if (nargout(fun) >= 1)
+    nret = nargout(fun);
+  elseif nargout >= 1
+    nret = nargout;
+  else
+    nret = 1;
+  end
 
 
   %% Work out what inputs are cell arrays.
   % Unless we discover otherwise, all inputs are arrays.
-  arrays = varargin;
-  for i = 1:numel(varargin)
-    if ~isarray(varargin{i})
-      arrays = varargin(1:i-1);
+  array_count = numel(varargin);
+  for i = 1:array_count
+    if ~isnumeric(varargin{i})
+      array_count = i-1;
       break;
     end
   end
 
-  if numel(arrays) < 1
+  if array_count < 1
     error('There must be at least one array as input');
   end
 
 
   %% Any remaining inputs should be name:value pairs.
   % We need to know the 'uniform output' setting, but nothing else.
-  if (i < length(varargin))
-    options = struct(varargin{i:end});
+  if (array_count < numel(varargin))
+    options = struct(varargin{array_count+1:end});
     uniform_output = isfield(options, 'UniformOutput') && options.UniformOutput;
   else
     options = struct();
@@ -66,10 +73,9 @@ function varargout = iss_arrayfun_parfor(numprocs, fun, varargin)
   end
 
 
-  %% Break up the calls into lists of arguments.
-  % Each cell in 'args' represents a call to 'fun'
-  args = arrayfun(@(varargin) varargin, arrays{:}, ...
-                  'UniformOutput', false);
+  %% Work out the dimensions of each array
+  array_size = size(varargin{1});
+  array_numel = numel(varargin{1});
 
 
   %% Start the pool, unless its already started
@@ -80,17 +86,32 @@ function varargout = iss_arrayfun_parfor(numprocs, fun, varargin)
   end
 
 
+  %% Construct return cell
+  % We have to return the result of each parfor run, and the break
+  % it up afterwards.
+  rets = cell(array_size);
+
+
   %% Make the function calls in parallel.
-  ret = cell(1, numel(arrays{1}));
   try
-    parfor i = 1:numel(arrays{1})
-      ret{i} = cell(1, nret);
-      [ret{i}{:}] = fun(args{i}{:});
+    parfor i = 1:array_numel
+      rets{i} = cell(1, nret);
+      args = cell(1, array_count);
+
+      for j = 1:array_count
+        args{j} = varargin{j}(i);
+      end
+
+      [rets{i}{:}] = fun(args{:});
     end
   catch exception
+    fprintf('Error:\n');
+    disp(exception);
+
     if handle_pool
       matlabpool close;
     end
+
     rethrow(exception);
   end
 
@@ -102,14 +123,23 @@ function varargout = iss_arrayfun_parfor(numprocs, fun, varargin)
 
 
   %% Construct the output cell arrays
-  varargout = cellfun(@(varargin) reshape(varargin, size(arrays{1})), ret{:}, ...
-                      'UniformOutput', false);
+  varargout = cell(1, nret);
 
+  for i = 1:nret
+    if uniform_output
+      varargout{i} = zeros(array_size);
+    else
+      varargout{i} = cell(array_size);
+    end
+  end
 
-  % If we are to give uniform output, convert each cell array to
-  % a matrix.
-  if uniform_output
-    varargout = cellfun(@cell2mat, varargout, ...
-                        'UniformOutput', false);
+  for i = 1:array_numel
+    for j = 1:nret
+      if uniform_output
+        varargout{j}(i) = rets{i}{j};
+      else
+        varargout{j}(i) = rets{i}(j);
+      end
+    end
   end
 end
