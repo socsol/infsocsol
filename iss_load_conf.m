@@ -13,10 +13,20 @@
 %  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
-function Conf = iss_load_conf(ProblemFile)
-  [Options, StateLB, StateUB] = load([ProblemFile, '_options.mat'], ...
-                                     'options', 'state_lb', 'state_ub');
+function [DeltaFunction, StageReturnFunction, StateLB, StateUB, Conf] = ...
+      iss_load_conf(ProblemFile)
+
+  s = load([ProblemFile, '_options.mat'], ...
+           'DeltaFunction', 'StageReturnFunction', ...
+           'StateLB', 'StateUB', 'Options');
+
+  DeltaFunction = s.DeltaFunction;
+  StageReturnFunction = s.StageReturnFunction;
+  StateLB = s.StateLB;
+  StateUB = s.StateUB;
+  Options = s.Options;
+
   Conf = iss_conf(StateLB, StateUB, ...
                   iss_conf(StateLB, StateUB), ...
-                  Options{:});
+                  Options);
 end

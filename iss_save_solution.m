@@ -14,5 +14,5 @@
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
 function iss_save_solution(OCM, Conf)
-  save(Conf.Options.ProblemFile, '_solution.mat'], 'OCM');
+  save([Conf.Options.ProblemFile, '_solution.mat'], 'OCM');
 end

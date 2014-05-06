@@ -28,14 +28,14 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
         matlabpool(Conf.Options.PoolSize);
       end
     end
-    
+
     Options = Conf.Options;
     Dimension = Conf.Dimension;
-    
+
     % Initial policy -- in between the two bounds.
     MidControl = Options.ControlLB + (Options.ControlUB - ...
                                       Options.ControlLB) / 2;
-    
+
     % Create a cell array of controls.
     UOptimal = mat2cell(meshgrid(MidControl, ...
                                  ones(1, Conf.TotalStates)), ...
@@ -43,9 +43,9 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
                         Options.ControlDimension);
 
     Norms = zeros(1, Options.PolicyIterations);
-    
+
     StoppingTolerance = 5*10^(Dimension-5);
-    
+
     for i=1:Options.PolicyIterations
       if Conf.Debug
         fprintf(' * Iteration #%i:\n', i);
@@ -96,14 +96,14 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
           break;
         end
       end
-      
+
       if i >= 4 && all(Norms(i-3:i-1) == Norms(i))
         fprintf('   - Last four norms were identical; aborting.\n');
         break;
       end
     end; % for i=1:PolicyIterations
 
-    % Optimal Coding Matrix initialisation.  This is just 
+    % Optimal Coding Matrix initialisation.  This is just
     % slicing the cell array of optimal controls orthogonally
     OCM = mat2cell(cell2mat(UOptimal), ...
                    Conf.TotalStates, ...
@@ -132,5 +132,19 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
 
     %exception.stack(2)
     rethrow(exception);
+  end
+
+  %% If a problem file has been specified, save the details
+  if Options.ProblemFile
+    if Conf.Debug
+      fprintf(' * Saving to %s ... ', Options.ProblemFile);
+    end
+
+    iss_save_conf(DeltaFunction, StageReturnFunction, StateLB, StateUB, Conf);
+    iss_save_solution(OCM, Conf);
+
+    if Conf.Debug
+      fprintf('done.\n');
+    end
   end
 end

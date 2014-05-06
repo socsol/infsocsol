@@ -14,5 +14,6 @@
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
 function OCM = iss_load_solution(Conf)
-  OCM = load(Conf.Options.ProblemFile, '_solution.mat'], 'OCM');
+  s = load([Conf.Options.ProblemFile, '_solution.mat'], 'OCM');
+  OCM = s.OCM;
 end

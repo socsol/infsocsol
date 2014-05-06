@@ -13,7 +13,9 @@
 %  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
-function iss_save_conf(state_lb, state_ub, Conf)
-  options = Conf.Options;
-  save([Conf.Options.ProblemFile, '_options.mat'], 'state_lb', 'state_ub', 'options');
+function iss_save_conf(DeltaFunction, StageReturnFunction, StateLB, StateUB, Conf)
+  Options = Conf.Options;
+  save([Conf.Options.ProblemFile, '_options.mat'], ...
+       'DeltaFunction', 'StageReturnFunction', ...
+       'StateLB', 'StateUB', 'Options');
 end
