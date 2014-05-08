@@ -1,6 +1,6 @@
 
 %%
-%  Copyright 2013 Jacek B. Krawczyk and Alastair Pharo
+%  Copyright 2014 Jacek B. Krawczyk and Alastair Pharo
 %
 %  Licensed under the Apache License, Version 2.0 (the "License");
 %  you may not use this file except in compliance with the License.
@@ -36,9 +36,8 @@ function [SimulatedValue, StateEvolution, DeltaEvolution, Control] = ...
   StateEvolution=zeros(TotalSimulationStages+1,Dimension);
   DeltaEvolution=zeros(TotalSimulationStages,Dimension);
   
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%             COMPUTE TRAJECTORY             %%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  %% Compute trajectory
 
   % Initialise State
   StateVars = InitialCondition;

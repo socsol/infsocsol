@@ -41,29 +41,9 @@ Conf = iss_conf(StateLB, StateUB, ...
                 'ControlLB', ControlLB, ...
                 'ControlUB', ControlUB, ...
                 'UserConstraintFunctionFile', UserConstraintFunctionFile, ...
+                'ProblemFile', FileName, ...
                 Options{:});
 
-%% Run the main loop
-%   returns the optimal decision matrices as a cell array
-
-% Begin timing.
-StartTime=cputime;
-
-[OCM, UOptimal, Value] = iss_solve(DeltaFunction, StageReturnFunction, ...
-                                   StateLB, StateUB, Conf);
-
-% Stop timing execution and record time.
-ElapsedTime=cputime-StartTime;
-fprintf(1,'Computation time: %10.3f seconds\n', ElapsedTime);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%            WRITE PARAMETER FILE            %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-iss_save_conf(Conf);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%            WRITE SOLUTION FILE             %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-iss_save_solution(OCM, Conf);
+%% Pass through to iss_solve
+iss_solve(DeltaFunction, StageReturnFunction, ...
+          StateLB, StateUB, Conf);

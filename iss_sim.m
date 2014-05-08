@@ -21,14 +21,12 @@ function [SimulatedValue, StateEvolution, DeltaEvolution, Control] = ...
   Conf = iss_conf(Minimum, Maximum, varargin{:});
 
   SimulationTimeStep = Conf.Options.SimulationTimeStep;
-  NumberOfSimulations = Conf.Options.NumberOfSimulations;
+  NumberOfSimulations = abs(Conf.Options.NumberOfSimulations);
 
   
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%                 MAIN LOOP                  %%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% Main loops
 
-  %% We use the array fn to compute the trajectories in parallel
+  % We use the array fn to compute the trajectories in parallel.
   % However, every run is identical, due to the only difference
   % being the random numbers produced.  Hence, the function f makes
   % no use of i.

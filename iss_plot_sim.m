@@ -25,11 +25,25 @@ function SimulatedValue = iss_plot_sim(ProblemFile, InitialCondition, varargin)
   Conf = iss_conf(StateLB, StateUB, Conf, varargin{:});
 
 
+  %% Extract options
+  Dimension = Conf.Dimension;
+  Time=Conf.Time;
+  SimTime=Conf.SimTime;
+  ControlTime=Conf.ControlTime;
+  ControlDimension = Conf.Options.ControlDimension;
+  LineSpec = Conf.Options.LineSpec;
+  TimepathOfInterest = Conf.Options.TimepathOfInterest;
+  NumberOfSimulations = Conf.Options.NumberOfSimulations;
+  
+
   %% Run iss_sim
   [SimulatedValue, StateEvolution, DeltaEvolution, Control] = ...
       iss_sim(InitialCondition, ODM, ...
               DeltaFunction, StageReturnFunction, ...
               StateLB, StateUB, Conf);
+  
+  % The values are returned in a cell array by iss_sim.
+  SimulatedValue = cell2mat(SimulatedValue);
 
   
   %% Plot trajectories
@@ -38,15 +52,6 @@ function SimulatedValue = iss_plot_sim(ProblemFile, InitialCondition, varargin)
   VariableMin = 0;
   VariableMax = 0;
   VariableStateStep = 0;
-
-  % These are extracted from the config
-  Dimension = Conf.Dimension;
-  Time=Conf.Time;
-  SimTime=Conf.SimTime;
-  ControlTime=Conf.ControlTime;
-  ControlDimension = Conf.Options.ControlDimension;
-  LineSpec = Conf.Options.LineSpec;
-  TimepathOfInterest = Conf.Options.TimepathOfInterest;
 
   % Plot variable state bounds, if any.
   hold on;

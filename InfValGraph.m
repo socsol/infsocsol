@@ -1,6 +1,6 @@
 
 %%
-%  Copyright 2013 Jacek B. Krawczyk and Alastair Pharo
+%  Copyright 2014 Jacek B. Krawczyk and Alastair Pharo
 %
 %  Licensed under the Apache License, Version 2.0 (the "License");
 %  you may not use this file except in compliance with the License.
@@ -13,14 +13,9 @@
 %  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
-function InfValGraph(FileName,InitialCondition,VariableOfInterest,...
-    VariableOfInterestValues,SimulationTimeStep,NumberOfSimulations,...
-    ScaleFactor,LineSpec)
-
-global XValues VValues
-%clear XValues VValues 
-%modified to get hold of the computed values
-
+function InfValGraph(FileName,InitialCondition,VariableOfInterest, ...
+                     VariableOfInterestValues,SimulationTimeStep, ...
+                     NumberOfSimulations, ScaleFactor,LineSpec)
 % InfValGraph automates the process of computing expected values for the
 % continuous system (under the continuous-time, continuous-state control
 % rule derived from the solution computed by InfSOCSol) as the initial
@@ -111,25 +106,10 @@ else
 	UserSuppliedNoise=-1;
 end; % if NumberOfSimulations==1
 
-% Predefine vector for better memory management and speed.
-ValueVector=zeros(1,length(VariableOfInterestValues));
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%           COMPUTE VALUE PROFILE            %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-for i=1:length(VariableOfInterestValues)
-	InitialCondition(VariableOfInterest)=VariableOfInterestValues(i);
-	ValueVector(i)=ScaleFactor*mean(InfSim(FileName,InitialCondition,...
-        SimulationTimeStep,-abs(NumberOfSimulations),UserSuppliedNoise));
-end; % for i=1:length(VariableOfInterestValues)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%             PLOT VALUE PROFILE             %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-XValues=VariableOfInterestValues
-VValues=ValueVector
-plot(VariableOfInterestValues,ValueVector,LineSpec);
-ylabel('Value');
-xlabel(['x_',int2str(VariableOfInterest)]);
-grid;
+%% Pass options through to iss_plot_valgraph
+iss_plot_valgraph(FileName, InitialCondition, VariableOfInterestValues, ...
+                  'VariableOfInterest', VariableOfInterest, ...
+                  'SimulationTimeStep', SimulationTimeStep, ...
+                  'NumberOfSimulations', NumberOfSimulations, ...
+                  'ScaleFactor', ScaleFactor, ...
+                  'LineSpec', LineSpec);
