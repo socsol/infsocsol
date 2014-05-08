@@ -36,12 +36,25 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
     MidControl = Options.ControlLB + (Options.ControlUB - ...
                                       Options.ControlLB) / 2;
 
+    % Most likely happens when there are no control bounds.
+    if (isnan(MidControl))
+      if Options.ControlLB < 0 && Options.ControlUB > 0
+        MidControl = 0;
+      elseif Options.ControlLB < 0
+        MidControl = Options.ControlUB;
+      else
+        MidControl = Options.ControlLB;
+      end
+    end
+
+    MidControl
+
     % Create a cell array of controls.
     UOptimal = mat2cell(meshgrid(MidControl, ...
                                  ones(1, Conf.TotalStates)), ...
                         ones(1, Conf.TotalStates), ...
                         Options.ControlDimension);
-
+UOptimal
     Norms = zeros(1, Options.PolicyIterations);
 
     StoppingTolerance = 5*10^(Dimension-5);
