@@ -47,14 +47,12 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
       end
     end
 
-    MidControl
-
     % Create a cell array of controls.
     UOptimal = mat2cell(meshgrid(MidControl, ...
                                  ones(1, Conf.TotalStates)), ...
                         ones(1, Conf.TotalStates), ...
                         Options.ControlDimension);
-UOptimal
+
     Norms = zeros(1, Options.PolicyIterations);
 
     StoppingTolerance = 5*10^(Dimension-5);
