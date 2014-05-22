@@ -1,9 +1,0 @@
-!: "cost_fn" => [cost_fn a b c should be ((a^2 + b^2) / 2)
-                 | a,b,c = take 10 $ from (double,double,double) ] when
-  cost_fn u x _ = (u^2 + x^2) / 2;
-end;
-
-!: "octave_cost_fn" => [octave_call octave_cost_fn 1 (a, b, c) should be cost_fn a b c
-                        | a,b,c = take 10 $ from (double,double,double) ] when
-  octave_cost_fn = octave_func ("pure_call('cost_fn_spec::cost_fn', u, x, t)", "u", "x", "t");
-end;
