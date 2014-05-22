@@ -16,7 +16,7 @@ icons at the top of this page.
 
 ## The manual
 
-Download the InfSOCSol manual in PDF [here](ISSManual.pdf).
+Download the InfSOCSol manual in PDF format [here](ISSManual.pdf).
 
 ## Authors
 
