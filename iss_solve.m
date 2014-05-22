@@ -53,6 +53,10 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
                         ones(1, Conf.TotalStates), ...
                         Options.ControlDimension);
 
+    % Use this as the "start" control for each iteration.  This
+    % means that the same start is used in every iteration.
+    UStart = UOptimal;
+
     Norms = zeros(1, Options.PolicyIterations);
 
     StoppingTolerance = 5*10^(Dimension-5);
@@ -77,10 +81,12 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
         fprintf('   - Policy improvement ... ');
         polimp_start = tic();
       end
+
       UOld = UOptimal;
-      [UOptimal, Flags] = iss_polimp(Value, DeltaFunction, ...
+      [UOptimal, Flags] = iss_polimp(UStart, Value, DeltaFunction, ...
                                      StageReturnFunction, StateLB, ...
                                      StateUB, Conf);
+
       if Conf.Debug
         polimp_elapsed = toc(polimp_start);
         fprintf('done (%fs; %fs/state).\n', ...
@@ -98,13 +104,34 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
         m1 = cell2mat(UOld);
         m2 = cell2mat(UOptimal);
         diffs =  m1(:) - m2(:);
+        num_diffs = length(find(diffs ~= 0));
         Norms(i) = norm(diffs);
         fprintf(['completed; norm: %f; # of ' ...
-                 'differences: %i.\n'], Norms(i), length(find(diffs ~= 0)));
+                 'differences: %i.\n'], Norms(i), num_diffs);
 
         if Norms(i) <= StoppingTolerance
           fprintf(['   - Norm is less than stopping tolerance of %f; Stopping.\n'], StoppingTolerance);
           break;
+        % elseif i == 2 && Norms(i) <= StoppingTolerance
+        %   fprintf(['   - Not enough change in second iteration; ' ...
+        %            'randomizing controls.\n'], StoppingTolerance);
+
+        %   for j = 1:length(UOptimal)
+        %     % Make a random "extreme" or middle control choice
+        %     UStart = Options.ControlLB + ...
+        %              randi([-1, 1], 1, length(Options.ControlUB)) .* ...
+        %              (Options.ControlUB - Options.ControlLB);
+
+        %     % Replace any infinite values with a large-ish random
+        %     % number.
+        %     UStart(UStart == Inf) = abs(rand * 100);
+        %     UStart(UStart == -Inf) = -abs(rand * 100);
+
+        %     % NaNs occur when both values are infinite.
+        %     UStart(UStart == Inf) = rand * 100;
+
+        %     UOptimal{j} = UStart;
+        %   end
         end
       end
 
@@ -124,6 +151,11 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
     FinalValue=Value(Conf.TotalStates);
     fprintf('\n * Final value determination: %f\n', FinalValue);
     fprintf(' * Number of policy iterations: %i\n', i);
+
+    % Print information about how many errors occurred
+    errors = length(find(cell2mat(Flags) ~= 1));
+    fprintf(' * Errors: %i\n', errors);
+    fprintf(' * Error Percentage: %f\n\n', errors * 100 / Conf.TotalStates);
 
     % Print final norm if the number of iterations used failed to take it under
     % 0.001.
