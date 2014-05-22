@@ -32,6 +32,7 @@ function SimulatedValue = iss_plot_sim(ProblemFile, InitialCondition, varargin)
   ControlTime=Conf.ControlTime;
   ControlDimension = Conf.Options.ControlDimension;
   LineSpec = Conf.Options.LineSpec;
+  LineWidth = Conf.Options.LineWidth;
   TimepathOfInterest = Conf.Options.TimepathOfInterest;
   NumberOfSimulations = Conf.Options.NumberOfSimulations;
   
@@ -70,6 +71,6 @@ function SimulatedValue = iss_plot_sim(ProblemFile, InitialCondition, varargin)
   for i = 1:length(StateEvolution)
     PlotTraj(Dimension,ControlDimension,VariableMin,VariableMax,...
              Time,StateLB,StateUB,SimTime,ControlTime,StateEvolution{i},...
-             Control{i},LineSpec,TimepathOfInterest);
+             Control{i},LineSpec,LineWidth,TimepathOfInterest);
   end
 end

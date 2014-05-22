@@ -15,6 +15,12 @@
 %  limitations under the License.
 function iss_save_conf(DeltaFunction, StageReturnFunction, StateLB, StateUB, Conf)
   Options = Conf.Options;
+
+  % If we are running in Octave, override the save setup
+  if exist('save_default_options','builtin')
+    save_default_options('-v7', 'local');
+  end
+
   save([Conf.Options.ProblemFile, '_options.mat'], ...
        'DeltaFunction', 'StageReturnFunction', ...
        'StateLB', 'StateUB', 'Options');

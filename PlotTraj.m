@@ -15,7 +15,7 @@
 %  limitations under the License.
 function PlotTraj(Dimension,ControlDimension,VariableMin,VariableMax,...
     Time,Minimum,Maximum,SimTime,ControlTime,StateEvolution,Control,...
-    LineSpec,TrajectoryOfInterest)
+    LineSpec,LineWidth,TrajectoryOfInterest)
 % This function plots timepaths. It is called by InfSim.
 
 % Compute last time to 4dp for rescaling of time axes.
@@ -27,8 +27,9 @@ if TrajectoryOfInterest==0
     % Plot the timepaths of each of the Dimension state variables.
     for i=1:Dimension
         subplot(Dimension+ControlDimension,1,i);
-        plot(SimTime,StateEvolution(:,i),LineSpec);
         hold on;
+        plot(SimTime,StateEvolution(:,i),LineSpec, 'LineWidth', LineWidth);
+        grid on;
         if VariableMin
             plot([0,Time],Minimum(:,i),'k');
         end;
@@ -43,16 +44,21 @@ if TrajectoryOfInterest==0
     % Plot the timepaths of each of the ControlDimension controls.
     for i=1:ControlDimension
         subplot(Dimension+ControlDimension,1,Dimension+i);
-        plot(SimTime,[Control(:,i); Control(length(ControlTime),i)],LineSpec);
         hold on;
+        plot(SimTime,[Control(:,i); Control(length(ControlTime), ...
+                                            i)],LineSpec, 'LineWidth', ...
+             LineWidth);
+        grid on;
         ylabel(['u_',int2str(i)]);
         tempAxis=axis;
         axis([0,axisTime,tempAxis(3:4)]);
     end; % for i=1:ControlDimension
 else
     if TrajectoryOfInterest<=Dimension
-        plot(SimTime,StateEvolution(:,TrajectoryOfInterest),LineSpec);
         hold on;
+        plot(SimTime,StateEvolution(:,TrajectoryOfInterest),LineSpec, ...
+             'LineWidth', LineWidth);
+        grid on;
         if VariableMin
             plot([0,Time],Minimum(:,TrajectoryOfInterest),'k');
         end;
@@ -61,9 +67,10 @@ else
         end;
         ylabel(['x_',int2str(TrajectoryOfInterest)]);
     else
-        plot(SimTime,[Control(:,TrajectoryOfInterest-Dimension); Control(length(ControlTime),TrajectoryOfInterest...
-            -Dimension)],LineSpec);
         hold on;
+        plot(SimTime,[Control(:,TrajectoryOfInterest-Dimension); Control(length(ControlTime),TrajectoryOfInterest...
+            -Dimension)],LineSpec, 'LineWidth', LineWidth);
+        grid on;
         ylabel(['u_',int2str(TrajectoryOfInterest-Dimension)]);
     end; % if TrajectoryOfInterest<=Dimension
     tempAxis=axis;

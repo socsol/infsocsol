@@ -42,6 +42,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
                           'UserConstraintFunctionFile', [], ...
                           'ControlDimension', 1, ...
                           'LineSpec', 'r-', ...
+                          'LineWidth', 0.5, ...
                           'PolicyIterations', 25, ...
                           'PoolSize', 1, ...
                           'ScaleFactor', 1, ...
@@ -186,13 +187,17 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   Conf.ControlTime = Conf.SimTime(1:end-1);
 
   %% Determine user constraint function to use based on stochasticity
-  % For legacy reasons theres some weird variable switching here.
-  Conf.UserConstraintFunction = '';
-  Conf.UserConstraintFunctionFile = Conf.Options.UserConstraintFunctionFile;
-  if isempty(Conf.UserConstraintFunctionFile)
-    % Do nothing.
+  if isempty(Conf.Options.UserConstraintFunctionFile)
+    Conf.UserConstraintFunction = '';
   else
-    Conf.UserConstraintFunction=Conf.UserConstraintFunctionFile;
+    if ischar(Conf.Options.UserConstraintFunctionFile)
+      Conf.UserConstraintFunction= ...
+          str2func(Conf.Options.UserConstraintFunctionFile);
+    else
+      Conf.UserConstraintFunction= ...
+          Conf.Options.UserConstraintFunctionFile;
+    end
+
     if Conf.Options.StochasticProblem
       Conf.UserConstraintFunctionFile='ConstFuncStoch';
     else

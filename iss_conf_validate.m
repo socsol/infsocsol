@@ -56,8 +56,10 @@ function Options = iss_conf_validate(StateLB, StateUB, Options)
   functions = {'OutputFcn', 'UserConstraintFunctionFile'};
   for i = 1:length(functions)
     f = functions{i};
-    Options.(f) = parse_function(Options.(f));
-    if ~is_function(Options.(f), [])
+    %Options.(f) = parse_function(Options.(f));
+    if ~isempty(Options.(f)) && ...
+          ~isa(Options.(f), 'function_handle') && ...
+          ~(ischar(Options.(f)) && exist(Options.(f)))
       error(['Expected ', f, ' to be a function, or name of a ' ...
       'function.']);
     end
@@ -109,21 +111,4 @@ function valid = is_boolean(it, null_value)
   
   valid = isscalar(it) && ...
           (it == 1 || it == 0);
-end
-
-function it = parse_function(it)
-  if ischar(it)
-    it = str2func(it);
-  end
-end
-
-function valid = is_function(it, null_value)
-  if nargin > 1 && ...
-        strcmp(class(it),class(null_value)) && ... 
-        all(it == null_value)
-    valid = true;
-    return;
-  end
-
-  valid = isa(it, 'function_handle');
 end

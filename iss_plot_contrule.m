@@ -34,6 +34,7 @@ function ControlValues = iss_plot_contrule(ProblemFile, InitialCondition, vararg
   StateStepSize = Conf.Options.StateStepSize;
   ControlDimension = Conf.Options.ControlDimension;
   LineSpec = Conf.Options.LineSpec;
+  LineWidth = Conf.Options.LineWidth;
 
   %% Compute control profiles
 
@@ -68,7 +69,7 @@ function ControlValues = iss_plot_contrule(ProblemFile, InitialCondition, vararg
 
   for i=1:ControlDimension
     subplot(ControlDimension,1,i);
-    plot(StateVect,C{i},LineSpec);
+    plot(StateVect,C{i},LineSpec, 'LineWidth', LineWidth);
     grid;
     ylabel(['u_',int2str(i)]);
     hold on;
