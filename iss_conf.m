@@ -189,6 +189,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   %% Determine user constraint function to use based on stochasticity
   if isempty(Conf.Options.UserConstraintFunctionFile)
     Conf.UserConstraintFunction = '';
+    Conf.UserConstraintFunctionFile = '';
   else
     if ischar(Conf.Options.UserConstraintFunctionFile)
       Conf.UserConstraintFunction= ...
