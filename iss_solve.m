@@ -32,20 +32,9 @@ function [OCM, UOptimal, Value, Flags] = iss_solve(DeltaFunction, ...
     Options = Conf.Options;
     Dimension = Conf.Dimension;
 
-    % Initial policy -- in between the two bounds.
-    MidControl = Options.ControlLB + (Options.ControlUB - ...
-                                      Options.ControlLB) / 2;
-
-    % Most likely happens when there are no control bounds.
-    if (isnan(MidControl))
-      if Options.ControlLB < 0 && Options.ControlUB > 0
-        MidControl = 0;
-      elseif Options.ControlLB < 0
-        MidControl = Options.ControlUB;
-      else
-        MidControl = Options.ControlLB;
-      end
-    end
+    % Determine the initial control.  This is used both to get the initial
+    % value, and to feed into *every* policy improvement iteration.
+    MidControl = iss_initial_control(Conf);
 
     % Create a cell array of controls.
     UOptimal = mat2cell(meshgrid(MidControl, ...
