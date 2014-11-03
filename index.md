@@ -9,14 +9,18 @@ optimal control problem.  Its routines implement a policy improvement
 algorithm to optimise a Markov decision chain approximating the
 original control problem.
 
-## Download the latest version
 
-The latest version of InfSOCSol is available for download via the
-icons at the top of this page.
+## Work in progress
+
+InfSOCSol is currently a work in progress and may not produce accurate
+results.  If you want to test the software you can
+[visit the project's page in GitHub](https://github.com/socsol/infsocsol).
+
 
 ## The manual
 
 Download the InfSOCSol manual in PDF format [here](ISSManual.pdf).
+
 
 ## Authors
 
