@@ -14,7 +14,7 @@ original control problem.
 
 InfSOCSol is currently a work in progress and may not produce accurate
 results.  If you want to test the software you can
-[visit the project's page in GitHub](https://github.com/socsol/infsocsol).
+[visit the project's page on GitHub](https://github.com/socsol/infsocsol).
 
 
 ## The manual
