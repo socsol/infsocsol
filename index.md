@@ -14,7 +14,12 @@ original control problem.
 
 InfSOCSol is currently a work in progress and may not produce accurate
 results.  If you want to test the software you can
+[download a zip file of the latest revision](https://github.com/socsol/infsocsol/zipball/master)
+or
 [visit the project's page on GitHub](https://github.com/socsol/infsocsol).
+
+Any issues can be reported to the authors via email, or you can
+[lodge an error report in GitHub](https://github.com/socsol/infsocsol/issues/new).
 
 
 ## The manual
