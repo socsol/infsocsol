@@ -6,4 +6,5 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [cljlab "0.2.0"]]
-  :profiles {:dev {:dependencies [[midje "1.6.3"]]}})
+  :profiles {:dev {:dependencies [[midje "1.6.3"]
+                                  [incanter "1.5.5"]]}})
