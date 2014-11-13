@@ -70,9 +70,6 @@ function varargout = iss_arrayfun_distributed(numprocs, fun, varargin)
   try
     [varargout{:}] = arrayfun(fun, darrays{:}, options{:});
   catch exception
-    fprintf('Error:\n');
-    disp(exception);
-
     if handle_pool
       matlabpool close;
     end

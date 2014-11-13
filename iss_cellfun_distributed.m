@@ -69,9 +69,6 @@ function varargout = iss_cellfun_distributed(numprocs, fun, varargin)
   try
     [varargout{:}] = cellfun(fun, dcells{:}, options{:});
   catch exception
-    fprintf('Error:\n');
-    disp(exception);
-
     if handle_pool
       matlabpool close;
     end

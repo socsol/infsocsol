@@ -103,9 +103,6 @@ function varargout = iss_cellfun_parfor(numprocs, fun, varargin)
       [rets{i}{:}] = fun(args{:});
     end
   catch exception
-    fprintf('Error:\n');
-    disp(exception);
-
     if handle_pool
       matlabpool close;
     end

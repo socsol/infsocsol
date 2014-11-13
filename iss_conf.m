@@ -127,7 +127,14 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   %% Setup a cell and array functions
   % This is used to handle parallel processing.
   if (Conf.Options.PoolSize > 1)
-    if exist('parcellfun', 'file')
+
+    % Check for the presence of the 'parallel' package in Octave
+    if strcmp(Conf.System, 'octave') && ...
+          any(cellfun(@(package) strcmp(package.name, 'parallel'), pkg('list')))
+      pkg load parallel
+    end
+
+    if exist('parcellfun', 'file') == 2
       Conf.CellFn = ...
           @(varargin) parcellfun(Conf.Options.PoolSize, varargin{:}, ...
                                  'VerboseLevel', 0);
@@ -142,7 +149,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
       Conf.CellFn = @cellfun;
     end
 
-    if exist('pararrayfun', 'file')
+    if exist('pararrayfun', 'file') == 2
       Conf.ArrayFn = ...
           @(varargin) pararrayfun(Conf.Options.PoolSize, varargin{:}, ...
                                   'VerboseLevel', 0);
