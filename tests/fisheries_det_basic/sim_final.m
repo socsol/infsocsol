@@ -1,0 +1,19 @@
+function final = sim_final(start, steps)
+
+load fisheries_det_basic_options.mat
+load fisheries_det_basic_solution.mat
+
+conf = iss_conf(StateLB, StateUB, iss_conf(StateLB, StateUB), Options);
+
+sim_time_step = ones(1, steps)*Options.TimeStep;
+sim_end = sum(sim_time_step);
+
+[value, states, deltas, control] = ...
+    iss_sim_individual(start, OCM, ...
+                       DeltaFunction, ...
+                       StageReturnFunction, ...
+                       StateLB, StateUB, conf, ...
+                       'SimulationEnd', sim_end, ...
+                       'SimulationTimeStep', sim_time_step);
+
+final = states(end,:);

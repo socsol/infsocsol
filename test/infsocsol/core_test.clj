@@ -24,6 +24,9 @@
 ;; This comes from a paper by Jacek
 (def example-a-slope (- (/ (+ -0.9 (sqrt (+ (pow 0.9 2) 4.0))) 2.0)))
 
+;; This comes from performing constrained minimisation on the problem
+(def fisheries-profix-max-steady [302.5000 0.3967])
+
 (defn set-lab-type
   "Makes sure the lab atom is of the correct type"
   [type]
@@ -32,73 +35,73 @@
           (not (cl/open? @lab)))
     (do
       (if @lab (cl/exit @lab))
-      (reset! lab (cl/open {:type type}))
+      (reset! lab (cl/open {:type type :out *out*}))
       (cl/eval @lab "diary infsocsol.core-test.log"))))
 
 (defmacro with-paths
   "evaluates a form with a given set of paths the lab's search-path"
   [lab paths & forms]
-  `(do (doall (map #(util/call-fn-with-basic-vals ~lab 0 0 :addpath %) ~paths))
-       (let [return# (do ~@forms)]
-         (doall (map #(util/call-fn-with-basic-vals ~lab 0 0 :rmpath %) ~paths))
-         return#)))
+  `(do (println "addpath")
+       (doall (map #(util/call-fn-with-basic-vals ~lab 0 0 :addpath %) ~paths))
+       (try
+         (do ~@forms)
+         (finally
+           (println "rmpath")
+           (doall (map #(util/call-fn-with-basic-vals ~lab 0 0 :rmpath %) ~paths))))))
 
 (defmacro with-plots
-  "evaluates a form and closes all open handles afterwards"
+  "evaluates forms and closes all open handles afterwards"
   [lab & forms]
-  `(do (let [return# (do ~@forms)]
-         (cl/eval ~lab "close all")
-         return#)))
+  `(let [return# (do ~@forms)]
+     (cl/eval ~lab "close all hidden")
+     return#))
 
+(fact-group
+ :polimp
+ (tabular
+  (with-state-changes [(before :facts (set-lab-type ?type))]
 
- (fact-group
-  :polimp
-  (tabular
-   (with-state-changes [(before :facts (set-lab-type ?type))
-                        (around :facts (with-paths @lab ["tests/example_a_polimp"] ?form))]
+    (fact "the policy improvement algorithm can produce the same policies as in InfSOCSol2"
+          (with-paths @lab ["tests/example_a_polimp"]
 
-     (fact "the policy improvement algorithm can produce the same policies as in InfSOCSol2"
+            ;; Setup: load the policy data from ISS2 (stored in .mat
+            ;; files) and run the ISS3 policy improvement algorithm
+            ;; bootstrapped so that it produces the same results
+            ;; as in ISS2.
+            (let [policies (do (util/call-fn-with-basic-vals @lab 0 0 :load ?file)
+                               (matrix (cl/get @lab :Policies)))
+                  dims (cl/size @lab :Policies)
+                  p (-> @lab
+                        (util/call-fn-with-basic-vals 0 1 :check_polimp
+                                                      [?state-step]
+                                                      [?time-step]
+                                                      [?max-fun-evals]
+                                                      [?tol-fun])
+                        first
+                        (cl/reshape dims)
+                        matrix)]
 
-           ;; Setup: load the policy data from ISS2 (stored in .mat
-           ;; files) and run the ISS3 policy improvement algorithm
-           ;; bootstrapped so that it produces the same results
-           ;; as in ISS2.
-           (let [policies (do (util/call-fn-with-basic-vals @lab 0 0 :load ?file)
-                              (matrix (cl/get @lab :Policies)))
-                 dims (cl/size @lab :Policies)
-                 p (-> @lab
-                       (util/call-fn-with-basic-vals 0 1 :check_polimp
-                                                     [?state-step]
-                                                     [?time-step]
-                                                     [?max-fun-evals]
-                                                     [?tol-fun])
-                       first
-                       (cl/reshape dims)
-                       matrix)]
+              ;; Check that every column (which represents a policy
+              ;; improvement round) is the same.
+              (doall (map (fn [i]
+                            (sel p :cols i) => (sel policies :cols i))
+                          (range (nth dims 1))))))))
 
-             ;; Check that every column (which represents a policy
-             ;; improvement round) is the same.
-             (doall (map (fn [i]
-                           (sel p :cols i) => (sel policies :cols i))
-                         (range (nth dims 1)))))))
-
-   ?type    ?state-step ?time-step ?max-fun-evals ?tol-fun  ?file
-   :matlab  0.01        0.02       400            1e-12     "example_a51_policies.mat"
-   :matlab  0.001       0.002      400            1e-12     "example_a501_policies.mat"))
+  ?type    ?state-step ?time-step ?max-fun-evals ?tol-fun  ?file
+  :matlab  0.01        0.02       400            1e-12     "example_a51_policies.mat"
+  :matlab  0.001       0.002      400            1e-12     "example_a501_policies.mat"))
 
 (fact-group
  :example-a
  (tabular
-  (with-state-changes [(before :facts (set-lab-type ?type))
-                       (around :facts (with-paths @lab ["tests/example_a"] ?form))]
-    (facts "about the control function"
-           (with-state-changes
-             [(before :facts
-                      (util/call-fn-with-basic-vals @lab 0 0 :solve
-                                                    [?state-step]
-                                                    [?time-step]
-                                                    [?max-fun-evals]
-                                                    [?tol-fun]))]
+  (with-state-changes [(before :facts (set-lab-type ?type))]
+    (facts "about the Example A control policy"
+           (with-paths @lab ["tests/example_a"]
+             (util/call-fn-with-basic-vals @lab 0 0 :solve
+                                           [?state-step]
+                                           [?time-step]
+                                           [?max-fun-evals]
+                                           [?tol-fun])
 
              ;; Check that the plot actually appears
              (fact "it plots without errors"
@@ -117,7 +120,7 @@
                ;; Use incanter to do an OLS regression on the plot
                (with-state-changes
                  [(before :facts
-                          (reset! model (linear-model (matrix (cl/get @lab :controls))
+                          (reset! model (linear-model (-> (cl/get @lab :controls) rest butlast matrix)
                                                       (range 0 (+ 0.5 ?state-step) ?state-step))))
                   (after :facts (reset! model nil))]
 
@@ -142,49 +145,49 @@
 (fact-group
  :fisheries-det-basic
  (tabular
-  (with-state-changes [(before :facts (set-lab-type ?type))
-                       (around :facts (with-paths @lab ["tests/fisheries_det_basic"] ?form))]
+  (with-state-changes [(before :facts (set-lab-type ?type))]
 
-    (facts "about the control function"
-           (with-state-changes
-             [(before :facts
-                      (util/call-fn-with-basic-vals @lab 0 0 :solve
-                                                    [?states]
-                                                    [?time-step]
-                                                    [?max-fun-evals]
-                                                    [?tol-fun]))]
+    (facts "about the fisheries control policy"
+           (with-paths @lab ["tests/fisheries_det_basic"]
 
-             ;; Check that the plot actually appears
-             (fact "it plots without errors"
-                   (with-plots @lab
-                     (util/call-fn-with-basic-vals @lab 0 0 :iss_plot_contrule
-                                                   "fisheries_det_basic"
-                                                   [500.0 0.0]
-                                                   "VariableOfInterest"
-                                                   [2])
-                     (first (util/call-fn-with-basic-vals @lab 0 1 :gcf))) =not=> empty?)
+             ;; Call this once per table row so as to save time
+             (util/call-fn-with-basic-vals @lab 0 0 :solve [?states] [?time-step])
 
-             ;; Here we run the plot, but make sure it is closed
-             (let [controls (with-plots @lab
-                              (-> @lab
-                                  (util/call-fn-with-basic-vals 0 1 :iss_plot_contrule
-                                                                "fisheries_det_basic"
-                                                                [500.0 0.0]
-                                                                "VariableOfInterest"
-                                                                [2])
-                                  first
-                                  vec))]
+             ;; Run simulations on the controls from viable starting
+             ;; points and check that they arrive the steady-state
+             ;; position that produces the greatest profit
+             (let [final (-> @lab
+                             (util/call-fn-with-basic-vals 0 1 :sim_final ?start [?steps])
+                             first
+                             vec)
+                   steady-one (->> final
+                                   matrix
+                                   (mmult (matrix [[1/600 5/4]]))
+                                   first)]
 
-               (fact "it returns a vector of controls"
-                     controls => vector?)
+               (if ?steady
+                 (fact "Simulations starting from viable starting points arrive at a steady state"
+                       steady-one => (roughly 1.0 ?steady-accuracy))
 
-               (fact "the control policy is always within bounds"
-                     (doall (map #(% => (roughly 0 0.01))
-                                 controls)))))))
+                 (fact "Simulations starting from non-viable starting points do not arrive at a steady state"
+                       steady-one =not=> (roughly 1.0 ?steady-accuracy)))
 
-  ?type   ?states ?time-step ?max-fun-evals ?tol-fun
-  :matlab 10      1          100            1e-6
-  :matlab 20      1          400            1e-12
-  :matlab 50      1          400            1e-12
-  :octave 10      1          100            1e-6
-  :octave 20      1          400            1e-12))
+               (doall
+                (map (fn my-fn [actual expected accuracy]
+                       (if ?steady
+                         (fact "Simulations starting from viable starting points approximate the optimal point"
+                               actual => (roughly expected accuracy))
+
+                         (fact "Simulations starting from non-viable starting points do not approximate the optimal point"
+                               actual =not=> (roughly expected accuracy))))
+                     final
+                     fisheries-profix-max-steady
+                     ?optim-accuracy))))))
+
+  ?type   ?states ?time-step ?start    ?steps ?steady ?steady-accuracy ?optim-accuracy
+  :matlab 10      1          [100 0.5] 100    true    0.001            [5   0.1]
+  :matlab 20      0.5        [600 0.6] 200    true    0.001            [5  0.05]
+  :matlab 40      0.25       [60  0.1] 300    true    0.001            [6  0.03]
+  :matlab 10      1          [600 1.0] 200    false   0.001            [5   0.1]
+  :octave 10      1          [100 0.5] 100    true    0.001            [5   0.1]
+  :octave 20      0.5        [600 0.6] 200    true    0.001            [5  0.05]))

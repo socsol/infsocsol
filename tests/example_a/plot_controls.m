@@ -1,0 +1,1 @@
+controls = iss_plot_contrule('example_a', 0.5);

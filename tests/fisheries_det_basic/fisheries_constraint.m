@@ -12,6 +12,8 @@ function [c, ceq] = fisheries_constraint(u, s, Conf)
   e_min = 0.1;
   e_max = 1;
   x_min = 60;
+  
+  profit = -fisheries_cost(u, [x,e], 0);
 
   % The inequality constraints should be a vector of numbers that are
   % negative iff the constraints are satisfied.
