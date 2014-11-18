@@ -70,7 +70,6 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
                           'TolCon', 1e-6, ...
                           'TolFun', 1e-6, ...
                           'TolX', 1e-6, ...
-                          'Algorithm', 'active-set', ...
                           'UseParallel', 'never');
 
     Options = struct(varargin{:});
@@ -99,18 +98,32 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   %% Figure out what system this is
   if exist('octave_config_info', 'builtin')
     Conf.System = 'octave';
+
+    % Check for the presence of the 'optim' package in Octave
+    if any(cellfun(@(package) strcmp(package.name, 'optim'), pkg('list')))
+      pkg load optim
+    end
+
+    if ~isfield(Conf.Options, 'Algorithm')
+      Conf.Options.Algorithm = 'lm_feasible';
+    end
   else
     Conf.System = 'matlab';
+    if ~isfield(Conf.Options, 'Algorithm')
+      Conf.Options.Algorithm = 'active-set';
+    end
   end
 
   %% An option should state which optimization routine to use.
   if ~isfield(Conf.Options, 'Optimizer')
     if (exist('fmincon', 'file'))
       Conf.Options.Optimizer = 'fmincon';
+    elseif (exist('nonlin_min', 'file'))
+      Conf.Options.Optimizer = 'nonlin_min';
     elseif (exist('sqp', 'file'))
       Conf.Options.Optimizer = 'sqp';
     else
-      error('neither fmincon nor sqp could be found');
+      error('none of "fmincon", "nonlin_min" or "sqp" could be found');
     end
   end
 
@@ -118,7 +131,12 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   if strcmp(Conf.Options.Optimizer, 'fmincon')
     Conf.FminconOptions = optimset(Conf.Options);
     Conf.Optimizer = @iss_optim_fmincon;
+  elseif strcmp(Conf.Options.Optimizer, 'nonlin_min')
+    Conf.NonlinMinOptions = optimset(Conf.Options);
+    Conf.Optimizer = @iss_optim_nonlin_min;
   elseif strcmp(Conf.Options.Optimizer, 'sqp')
+    warning(['Using "sqp".  Better performance can often be achieved ' ...
+             'by installing the "optim" package from Octave-Forge.']);
     Conf.Optimizer = @iss_optim_sqp;
   else
     error(['Unknown optimizer selected: ', Conf.Options.Optimizer]);
