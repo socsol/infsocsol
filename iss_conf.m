@@ -92,6 +92,11 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
     Conf.Options.MaxFunEvals = 100 * Conf.Options.ControlDimension;
   end
 
+  %% Set the default stopping tolerance based on the problem dimensionality.
+  if ~isfield(Conf.Options, 'StoppingTolerance')
+    Conf.Options.StoppingTolerance = 5*10^(Conf.Dimension-5);
+  end
+
   %% Perform option validation
   Conf.Options = iss_conf_validate(StateLB, StateUB, Conf.Options);
 
@@ -193,10 +198,22 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   Conf.CodingVector=[1,c(1:Conf.Dimension-1)];
 
   %% Determine whether sparse matrices are required
-  % This is completely arbitrary at the moment.
-  Conf.UseSparse = Conf.TotalStates > 5000;  
-  if Conf.UseSparse
-    fprintf('Using sparse matrices (%i states)\n', Conf.TotalStates);
+  % Try to make a giant matrix.  If an error occurs we assume
+  % that's because the address
+  try
+    x = zeros(Conf.TotalStates, Conf.TotalStates);
+    x = [];
+    Conf.UseSparse = 0;
+  catch
+    exception = lasterror();
+
+    if strcmp(exception.identifier, 'MATLAB:pmaxsize') || ...
+          strcmp(exception.identifier, 'Octave:bad-alloc')
+      fprintf('Using sparse matrices (%i states)\n', Conf.TotalStates);
+      Conf.UseSparse = 1;
+    else
+      rethrow(exception);
+    end
   end
 
   %% Compute discount factor

@@ -17,7 +17,7 @@
 % This function performs the value determination step of the policy
 % improvement algorithm
 function value=iss_valdet(UCell, DeltaFunction, StageReturnFunction, ...
-                                StateLB, StateUB, Conf)
+                          StateLB, StateUB, Conf)
 
   %% Extract options
   Dimension = Conf.Dimension;

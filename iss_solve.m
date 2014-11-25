@@ -13,9 +13,10 @@
 %  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
-function [OCM, UOptimal, Value, Errors] = iss_solve(DeltaFunction, ...
-                                                    StageReturnFunction, ...
-                                                    StateLB, StateUB, varargin);
+function [OCM, UOptimal, Value, Errors, Iterations] = ...
+      iss_solve(DeltaFunction, ...
+                StageReturnFunction, ...
+                StateLB, StateUB, varargin);
 
   %% Construct options
   Conf = iss_conf(StateLB, StateUB, varargin{:});
@@ -36,25 +37,19 @@ function [OCM, UOptimal, Value, Errors] = iss_solve(DeltaFunction, ...
     % value, and to feed into *every* policy improvement iteration.
     InitialControl = iss_initial_control(Conf);
 
-    % Create a cell array of controls.
-    UOptimal = mat2cell(meshgrid(InitialControl, ...
-                                 ones(1, Conf.TotalStates)), ...
-                        ones(1, Conf.TotalStates), ...
-                        Options.ControlDimension);
-
-    % Use this as the "start" control for each iteration.  This
-    % means that the same start is used in every iteration.
-    UStart = UOptimal;
-
-    % Create an array of zeros to indicate that there are no errors at
-    % present.
-    Errors = zeros(1, Conf.TotalStates);
+    % Create a cell array of controls.  Use this as the "start" control
+    % for each iteration.  This means that the same start is used in
+    % every iteration.
+    UStart = mat2cell(meshgrid(InitialControl, ...
+                               ones(1, Conf.TotalStates)), ...
+                      ones(1, Conf.TotalStates), ...
+                      Options.ControlDimension);
 
     % Track the norm of each policy iteration.
     Norms = zeros(1, Options.PolicyIterations);
 
-    % Stopping tolerance is a function of problem dimensionality.
-    StoppingTolerance = 5*10^(Dimension-5);
+    % The value of all states is initially zero.
+    Value = zeros(1, Conf.TotalStates);
 
     for i=1:Options.PolicyIterations
       if Conf.Debug
@@ -64,20 +59,16 @@ function [OCM, UOptimal, Value, Errors] = iss_solve(DeltaFunction, ...
       end
 
       if Conf.Debug
-        fprintf('   - Value determination:\n');
-      end
-      Value = iss_valdet(UOptimal, DeltaFunction, StageReturnFunction, ...
-                         StateLB, StateUB, Conf);
-      if Conf.Debug
-        fprintf('   - Value determination completed.\n');
-      end
-
-      if Conf.Debug
         fprintf('   - Policy improvement ... ');
         polimp_start = tic();
       end
 
-      UOld = UOptimal;
+      % Remember the previous control policy if this is not the first
+      % iteration
+      if i > 1
+        UOld = UOptimal;
+      end
+
       [UOptimal, Errors] = iss_polimp(UStart, Value, DeltaFunction, ...
                                       StageReturnFunction, StateLB, ...
                                       StateUB, Conf);
@@ -94,19 +85,21 @@ function [OCM, UOptimal, Value, Errors] = iss_solve(DeltaFunction, ...
       if Conf.Debug
         fprintf('   - Iteration #%i ', i);
       end
+
       if i == 1
         fprintf('completed.\n', i);
       else
         m1 = cell2mat(UOld);
         m2 = cell2mat(UOptimal);
-        diffs =  m1(~Errors) - m2(~Errors);
+        diffs =  m1(:) - m2(:);
         num_diffs = length(find(diffs ~= 0));
         Norms(i) = norm(diffs);
         fprintf(['completed; norm: %f; # of ' ...
                  'differences: %i.\n'], Norms(i), num_diffs);
 
-        if Norms(i) <= StoppingTolerance
-          fprintf(['   - Norm is less than stopping tolerance of %f; Stopping.\n'], StoppingTolerance);
+        if Norms(i) <= Options.StoppingTolerance
+          fprintf(['   - Norm is less than stopping tolerance of %f; Stopping.\n'], ...
+                  Options.StoppingTolerance);
           break;
         end
       end
@@ -114,6 +107,17 @@ function [OCM, UOptimal, Value, Errors] = iss_solve(DeltaFunction, ...
       if i >= 4 && all(Norms(i-3:i-1) == Norms(i))
         fprintf('   - Last four norms were identical; aborting.\n');
         break;
+      end
+
+      if Conf.Debug
+        fprintf('   - Value determination:\n');
+      end
+
+      Value = iss_valdet(UOptimal, DeltaFunction, StageReturnFunction, ...
+                         StateLB, StateUB, Conf);
+
+      if Conf.Debug
+        fprintf('   - Value determination completed.\n');
       end
     end; % for i=1:PolicyIterations
 
@@ -152,6 +156,9 @@ function [OCM, UOptimal, Value, Errors] = iss_solve(DeltaFunction, ...
     %exception.stack(2)
     rethrow(exception);
   end
+
+  %% Return the number of iterations
+  Iterations = i;
 
   %% If a problem file has been specified, save the details
   if Options.ProblemFile
