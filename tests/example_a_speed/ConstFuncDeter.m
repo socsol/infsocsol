@@ -1,0 +1,9 @@
+function [c,ceq] = ConstFuncDeter(U,DeltaFunction,StageReturnFunction,...
+    UserConstraintFunction,StateLB,StateStepSize,TimeStep,...
+    DiscountFactor,Dimension,States,CodingVector,StateVars,...
+    Value) %#ok<INUSD,INUSL>
+% This function acts as a 'shell' about the user-defined constraint
+% function, altering its arguments to match those passed in the fmincon
+% calls within InfSOCSol.
+
+[c,ceq]=feval(UserConstraintFunction,U,StateVars,TimeStep);

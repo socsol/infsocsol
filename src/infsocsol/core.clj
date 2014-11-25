@@ -13,4 +13,43 @@
 ;; limitations under the License.
 
 (ns infsocsol.core
-  (:require [cljlab.core :as cl]))
+  (:require [cljlab.core :as cl]
+            [cljlab.util :as util]))
+
+(def lab (atom nil))
+
+(defn set-lab-type
+  "Makes sure the lab atom is of the correct type"
+  [type]
+  (if (or (nil? @lab)
+          (not= (cl/type @lab) type)
+          (not (cl/open? @lab)))
+    (do
+      (if @lab (cl/exit @lab))
+      (reset! lab (cl/open {:type type :out *out*})))))
+
+(defmacro with-paths
+  "evaluates a form with a given set of paths the lab's search-path"
+  [lab paths & forms]
+  `(do (dorun (map #(util/call-fn-with-basic-vals ~lab 0 0 :addpath %) ~paths))
+       (try
+         (do ~@forms)
+         (finally
+           (dorun (map #(util/call-fn-with-basic-vals ~lab 0 0 :rmpath %) ~paths))))))
+
+(defmacro in-path
+  "evaluates a form inside a given path"
+  [lab path & forms]
+  `(let [old-path# (first (util/call-fn-with-basic-vals ~lab 0 1 :pwd))]
+     (util/call-fn-with-basic-vals ~lab 0 0 :cd ~path)
+     (try
+       (do ~@forms)
+       (finally
+         (util/call-fn-with-basic-vals ~lab 0 0 :cd old-path#)))))
+
+(defmacro with-plots
+  "evaluates forms and closes all open handles afterwards"
+  [lab & forms]
+  `(let [return# (do ~@forms)]
+     (cl/eval ~lab "close all hidden")
+     return#))

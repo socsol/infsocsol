@@ -7,4 +7,5 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [cljlab "0.2.1"]]
   :profiles {:dev {:dependencies [[midje "1.6.3"]
-                                  [incanter "1.5.5"]]}})
+                                  [incanter "1.5.5"]
+                                  [thunknyc/profile "0.5.1"]]}})

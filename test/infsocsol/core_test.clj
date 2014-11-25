@@ -13,12 +13,12 @@
 ;; limitations under the License.
 
 (ns infsocsol.core-test
-  (:use midje.sweet
+  (:use infsocsol.core
+        midje.sweet
         (incanter core stats charts))
   (:require [cljlab.core :as cl]
             [cljlab.util :as util]))
 
-(def lab (atom nil))
 (def model (atom nil))
 
 ;; This comes from a paper by Jacek
@@ -26,35 +26,6 @@
 
 ;; This comes from performing constrained minimisation on the problem
 (def fisheries-profix-max-steady [302.5000 0.3967])
-
-(defn set-lab-type
-  "Makes sure the lab atom is of the correct type"
-  [type]
-  (if (or (nil? @lab)
-          (not= (cl/type @lab) type)
-          (not (cl/open? @lab)))
-    (do
-      (if @lab (cl/exit @lab))
-      (reset! lab (cl/open {:type type :out *out*}))
-      (cl/eval @lab "diary infsocsol.core-test.log"))))
-
-(defmacro with-paths
-  "evaluates a form with a given set of paths the lab's search-path"
-  [lab paths & forms]
-  `(do (println "addpath")
-       (doall (map #(util/call-fn-with-basic-vals ~lab 0 0 :addpath %) ~paths))
-       (try
-         (do ~@forms)
-         (finally
-           (println "rmpath")
-           (doall (map #(util/call-fn-with-basic-vals ~lab 0 0 :rmpath %) ~paths))))))
-
-(defmacro with-plots
-  "evaluates forms and closes all open handles afterwards"
-  [lab & forms]
-  `(let [return# (do ~@forms)]
-     (cl/eval ~lab "close all hidden")
-     return#))
 
 (fact-group
  :polimp
@@ -138,7 +109,6 @@
   :matlab 0.01        0.02       100            1e-6     0.01       0.01       0.999
   :matlab 0.01        0.02       400            1e-12    2e-3       5e-3       0.99999
   :matlab 0.001       0.002      400            1e-12    2e-4       2e-3       0.9999999
-  ;; NB. these octave tests fail because the policy rule has jags (why?)
   :octave 0.01        0.02       100            1e-6     0.1        0.1        0.7
   :octave 0.01        0.02       400            1e-12    0.1        0.1        0.7))
 
