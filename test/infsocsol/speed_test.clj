@@ -147,24 +147,24 @@
                                     (fisheries-det-basic-v2 states time-step)))))))))
 
 
-(defn plot-profiles [y-label data]
+(defn plot-profiles [x-label y-label data]
   (let [groups (->> data
                     ($order [:version :platform :cpus] :asc)
                     ($group-by [:cpus :version :platform]))
         plot-lines (fn [plot [h d i]]
                      (with-data d
                        (try
-                         (add-categories plot :states y-label :series-label (str h))
+                         (add-lines plot x-label y-label :series-label (str h))
                          (finally (set-stroke-color plot
                                                     (java.awt.Color. ;; red, green, blue
                                                      (/ (h :cpus) 4.0)
                                                      (if (= (h :platform) :matlab) 0.0 0.5)
                                                      (if (= (h :version) :current) 0.0 0.5))
-                                                    :series i)))))]
+                                                    :dataset (inc i))))))]
      (reduce plot-lines
-             (line-chart [] []
-                         :legend true
-                         :x-label "States"
-                         :y-label (name y-label)
-                         :series-label "")
+             (xy-plot [] []
+                      :legend true
+                      :x-label (name x-label)
+                      :y-label (name y-label)
+                      :series-label "")
              (map conj groups (range 0 (count groups))))))

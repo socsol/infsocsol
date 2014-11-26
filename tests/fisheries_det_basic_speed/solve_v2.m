@@ -4,9 +4,6 @@ function Iterations = solve_v2(states, time_step)
   delta_file = 'fisheries_delta';
   cost_file = 'fisheries_cost';
 
-  state_lb = 0;
-  state_ub = 0.5;
-  
   lb = [60 0.1];
   ub = [600  1];
 

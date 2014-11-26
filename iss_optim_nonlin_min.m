@@ -70,5 +70,12 @@ function [UOptimal, error] = iss_optim_nonlin_min(UStart, Value, StateVars, ...
                           'equc', {[], [], G}));
 
   UOptimal = p';
-  error = cvg <= 0;
+
+  % nonlin_min doesn't seem to report errors in all cases, so we
+  % explicitly check if the constraints are violated by the given
+  % control.
+  error = cvg <= 0 || ...
+          (~isempty(H) && any(H(p) < 0)) || ...
+          (~isempty(G) && any(G(p) ~= 0));
+
 end

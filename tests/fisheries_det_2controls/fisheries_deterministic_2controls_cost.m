@@ -1,4 +1,4 @@
-function cost = fisheries_deterministic_basic_cost(u,x,t,conf)
+function cost = fisheries_deterministic_2controls_cost(u,x,t,conf)
   b = x(1);
   e = x(2);
   

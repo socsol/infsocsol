@@ -91,9 +91,9 @@ function [OCM, UOptimal, Value, Errors, Iterations] = ...
       else
         m1 = cell2mat(UOld);
         m2 = cell2mat(UOptimal);
-        diffs =  m1(:) - m2(:);
+        diffs =  m1(~Errors,:) - m2(~Errors,:);
         num_diffs = length(find(diffs ~= 0));
-        Norms(i) = norm(diffs);
+        Norms(i) = norm(diffs(:));
         fprintf(['completed; norm: %f; # of ' ...
                  'differences: %i.\n'], Norms(i), num_diffs);
 

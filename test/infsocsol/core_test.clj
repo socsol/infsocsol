@@ -161,3 +161,53 @@
   :matlab 10      1          [600 1.0] 200    false   0.001            [5   0.1]
   :octave 10      1          [100 0.5] 100    true    0.001            [5   0.1]
   :octave 20      0.5        [600 0.6] 200    true    0.001            [5  0.05]))
+
+(fact-group
+ :fisheries-det-2controls
+ (tabular
+  (with-state-changes [(before :facts (set-lab-type ?type))]
+
+    (facts "about the fisheries control policy with two controls"
+           (with-paths @lab ["tests/fisheries_det_2controls"]
+
+             ;; Call this once per table row so as to save time
+             (util/call-fn-with-basic-vals @lab 0 0 :solve [?states] [?time-step])
+
+             ;; Run simulations on the controls from viable starting
+             ;; points and check that they arrive the steady-state
+             ;; position that produces the greatest profit
+             (let [final (-> @lab
+                             (util/call-fn-with-basic-vals 0 1 :sim_final ?start [?steps])
+                             first
+                             vec)
+                   steady-one (->> final
+                                   matrix
+                                   (mmult (matrix [[1/600 5/4]]))
+                                   first)]
+
+               (if ?steady
+                 (fact "Simulations starting from viable starting points arrive at a steady state"
+                       steady-one => (roughly 1.0 ?steady-accuracy))
+
+                 (fact "Simulations starting from non-viable starting points do not arrive at a steady state"
+                       steady-one =not=> (roughly 1.0 ?steady-accuracy)))))))
+
+               ;; (doall
+               ;;  (map (fn my-fn [actual expected accuracy]
+               ;;         (if ?steady
+               ;;           (fact "Simulations starting from viable starting points approximate the optimal point"
+               ;;                 actual => (roughly expected accuracy))
+
+               ;;           (fact "Simulations starting from non-viable starting points do not approximate the optimal point"
+               ;;                 actual =not=> (roughly expected accuracy))))
+               ;;       final
+               ;;       fisheries-profix-max-steady
+               ;;       ?optim-accuracy))))))
+
+  ?type   ?states ?time-step ?start    ?steps ?steady ?steady-accuracy ?optim-accuracy
+  :matlab 20      1          [100 0.5] 100    true    0.1              [5   0.1]
+  :matlab 40      0.5        [600 0.6] 200    true    0.1              [5  0.05]
+  :matlab 80      0.25       [60  0.1] 300    true    0.1              [6  0.03]
+  :matlab 20      1          [600 1.0] 200    false   0.1              [5   0.1]
+  :octave 20      1          [100 0.5] 100    true    0.1              [5   0.1]
+  :octave 40      0.5        [600 0.6] 200    true    0.1              [5  0.05]))
