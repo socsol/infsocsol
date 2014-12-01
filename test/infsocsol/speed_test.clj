@@ -19,30 +19,16 @@
             [cljlab.core :as cl]
             [cljlab.util :as util]))
 
-(defn linspace
-  "Wrapper around *lab linspace"
-  [& params]
-  (set-lab-type :matlab)
-  (-> (apply util/call-fn-with-basic-vals @lab 0 1 :linspace
-             (map #(list %) params))
-      first
-      vec))
-
-(defn example-a-current [cpus states time-step]
+(defn example-a-current [cpus states]
   (with-paths @lab ["tests/example_a_speed"]
-    (-> (util/call-fn-with-basic-vals @lab 0 1 :solve_current
-                                      [cpus]
-                                      [states]
-                                      [time-step])
+    (-> (util/call-fn-with-basic-vals @lab 0 1 :solve_current [cpus] [states])
         first
         first
         int)))
 
-(defn example-a-v2 [states time-step]
+(defn example-a-v2 [states]
   (in-path @lab "tests/example_a_speed"
-    (-> (util/call-fn-with-basic-vals @lab 0 1 :solve_v2
-                                      [states]
-                                      [time-step])
+    (-> (util/call-fn-with-basic-vals @lab 0 1 :solve_v2 [states])
         first
         first
         int)))
@@ -97,9 +83,8 @@
    [:platform :version :cpus :states :iterations :time]
    (doall
     (apply concat
-           (for [states (linspace 51 501 samples)
-                 :let [state-step (/ 0.5 (- states 1))
-                       time-step (* 2 state-step)]]
+           (for [states (concat (range 51 501 (/ (- 501 51) (- samples 1))) [501])]
+
              (conj
               (for [platform [:matlab :octave]
                     cpus (range 1 5)]
@@ -109,14 +94,14 @@
                               :cpus cpus
                               :states states}
                              (profile example-a-current
-                                      (example-a-current cpus states time-step))))
+                                      (example-a-current cpus states))))
 
               (run-profile :matlab
                            {:version :v2
                             :cpus 1
                             :states states}
                            (profile example-a-v2
-                                    (example-a-v2 states time-step)))))))))
+                                    (example-a-v2 states)))))))))
 
 (defn profile-fisheries-det-basic
   "Profiling of basic deterministic fisheries model"

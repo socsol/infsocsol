@@ -1,10 +1,11 @@
-function Iterations = solve_v2(states, time_step)
+function Iterations = solve_v2(states)
   global Iterations;
 
   delta_file = 'delta';
   cost_file = 'cost';
 
   state_step = 0.5 / (states - 1);
+  time_step = 0.02; %2 * state_step;
 
   state_lb = 0;
   state_ub = 0.5;
