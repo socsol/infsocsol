@@ -27,7 +27,7 @@ function value=iss_valdet(UCell, DeltaFunction, StageReturnFunction, ...
   DiscountFactor = Conf.DiscountFactor;
   Options = Conf.Options;
 
-  StateStepSize = Options.StateStepSize;
+  StateStepSize = Conf.StateStepSize;
   TimeStep = Options.TimeStep;
 
   % This will differ depending on whether system is stochasic or not.

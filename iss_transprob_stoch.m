@@ -26,7 +26,7 @@ function TransProb = iss_transprob_stoch(DeltaFunction, StateVars, ...
   NoiseProb = Options.NoiseProb;
   NoisyVars = Options.NoisyVars;
   
-  StateStepSize = Options.StateStepSize;
+  StateStepSize = Conf.StateStepSize;
   TimeStep = Options.TimeStep;
   TotalStates = Conf.TotalStates;
 

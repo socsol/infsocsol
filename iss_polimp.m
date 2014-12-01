@@ -41,12 +41,13 @@ function [UOptimal, Error] = iss_polimp_each(UStart, StateNum, Value, DeltaFunct
   DiscountFactor = Conf.DiscountFactor;
   Optimizer = Conf.Optimizer;
   States = Conf.States;
+  StateStepSize = Conf.StateStepSize;
   UserConstraintFunctionFile = Conf.UserConstraintFunctionFile;
   UserConstraintFunction = Conf.UserConstraintFunction;
 
   Options = Conf.Options;  
   StateVect=SnToSVec(StateNum,CodingVector,Dimension);
-  StateVars=(StateVect-1).*Options.StateStepSize+StateLB;
+  StateVars=(StateVect-1).*StateStepSize+StateLB;
 
   [UOptimal, Error] = ...
       Optimizer(UStart, Value, StateVars, DeltaFunction, ...

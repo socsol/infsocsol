@@ -28,7 +28,8 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   else
     InitialSetup = 1;
     Conf = struct('Dimension', size(StateLB,2));
-    Conf.Options = struct('StateStepSize', (StateUB - StateLB) / 10, ...
+    Conf.Options = struct('States', [], ...
+                          'StateStepSize', [], ...
                           'TimeStep', 1, ...
                           'DiscountRate', 0.9, ...
                           'ProblemFile', [], ...
@@ -85,6 +86,16 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   % Skip the rest unless an option changed or this is a first run.
   if ~InitialSetup && ~OptionsChanged
     return
+  end
+
+  %% Set the state step size
+  % If the user specifies "states", this is used in place of state
+  % step size.
+  if ~isempty(Conf.Options.States)
+    Conf.Options.StateStepSize = (StateUB - StateLB) / ...
+        Conf.Options.States;
+  elseif isempty(Conf.Options.StateStepSize)
+    Conf.Options.StateStepSize = (StateUB - StateLB) / 10;
   end
 
   %% Set the max iterations based on the number of controls.
@@ -192,10 +203,17 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   end
 
   %% Construct coding vector and friends
-  Conf.States=round((StateUB-StateLB)./Conf.Options.StateStepSize+1);
+  if ~isempty(Conf.Options.States)
+    Conf.States = Conf.Options.States;
+  else
+    Conf.States = round((StateUB-StateLB)./ ...
+                        Conf.Options.StateStepSize+1);
+  end
+
   c=cumprod(Conf.States);
   Conf.TotalStates=c(Conf.Dimension);
   Conf.CodingVector=[1,c(1:Conf.Dimension-1)];
+  Conf.StateStepSize = (StateUB - StateLB) ./ (Conf.States - 1);
 
   %% Determine whether sparse matrices are required
   % Try to make a giant matrix.  If an error occurs we assume

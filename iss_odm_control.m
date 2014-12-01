@@ -26,7 +26,7 @@ function U = iss_odm_control(ODM, StateVars, Minimum, Maximum, varargin)
   Dimension=Conf.Dimension;
   Min = Minimum(1,:);
   States = Conf.States;
-  StateStep = Conf.Options.StateStepSize;
+  StateStep = Conf.StateStepSize;
   Vertices=Conf.Vertices;
     
 

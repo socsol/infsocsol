@@ -14,6 +14,6 @@
 %  See the License for the specific language governing permissions and
 %  limitations under the License.
 function StateVars = SVecToSVars(StateVect, StateLB, Conf)
-  StateStepSize = Conf.Options.StateStepSize;
+  StateStepSize = Conf.StateStepSize;
   StateVars=(StateVect-1).*StateStepSize+StateLB;
 end

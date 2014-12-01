@@ -16,7 +16,7 @@
 function TransProb = iss_transprob_deter(DeltaFunction, StateVars, ...
                                          U, StateLB, StateUB, Conf);
   
-  StateStepSize = Conf.Options.StateStepSize;
+  StateStepSize = Conf.StateStepSize;
   TimeStep = Conf.Options.TimeStep;
   
   Next = iss_next_euler(DeltaFunction, StateVars, U, TimeStep, 0, Conf);
