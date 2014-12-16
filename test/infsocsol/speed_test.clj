@@ -78,16 +78,17 @@
 
 (defn profile-example-a
   "Profiling of example A"
-  [samples]
+  [samples max-cpus]
   (dataset
    [:platform :version :cpus :states :iterations :time]
    (doall
     (apply concat
-           (for [states (concat (range 51 501 (/ (- 501 51) (- samples 1))) [501])]
+           (for [i (range samples)
+                 :let [states (+ 51 (* 150 i))]]
 
              (conj
               (for [platform [:matlab :octave]
-                    cpus (range 1 5)]
+                    cpus (range 1 (inc max-cpus))]
 
                 (run-profile platform
                              {:version :current
@@ -105,7 +106,7 @@
 
 (defn profile-fisheries-det-basic
   "Profiling of basic deterministic fisheries model"
-  [samples]
+  [samples max-cpus]
   (dataset
    [:platform :version :cpus :states :iterations :time]
    (doall
@@ -115,7 +116,7 @@
                        time-step (/ 1 (Math/pow 2 i))]]
              (conj
               (for [platform [:matlab :octave]
-                    cpus (range 1 5)]
+                    cpus (range 1 (inc max-cpus))]
 
                 (run-profile platform
                              {:version :current
