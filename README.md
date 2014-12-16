@@ -106,56 +106,51 @@ parameter gives the number of CPUs on the machine running the tests.
 The return value is an Incanter dataset (i.e. a table).  An example of
 the output produced is given in the following table:
 
-| :platform | :version | :cpus | :states | :iterations |         :time |
-|-----------+----------+-------+---------+-------------+---------------|
-|   :matlab |      :v2 |     1 |      51 |           7 |   5.207104145 |
-|   :matlab | :current |     1 |      51 |           6 |   3.907713917 |
-|   :matlab | :current |     2 |      51 |           6 |  12.419206545 |
-|   :octave | :current |     1 |      51 |           6 |  13.071235641 |
-|   :octave | :current |     2 |      51 |           6 |    7.17819733 |
-|   :matlab |      :v2 |     1 |     201 |          11 |  28.034113868 |
-|   :matlab | :current |     1 |     201 |           6 |  13.927962437 |
-|   :matlab | :current |     2 |     201 |           6 |  15.810110641 |
-|   :octave | :current |     1 |     201 |           6 |  51.030606245 |
-|   :octave | :current |     2 |     201 |           6 |  27.106062606 |
-|   :matlab |      :v2 |     1 |     351 |          10 |  46.797340215 |
-|   :matlab | :current |     1 |     351 |           7 |  28.704807972 |
-|   :matlab | :current |     2 |     351 |           7 |  24.197437885 |
-|   :octave | :current |     1 |     351 |           7 | 104.151060712 |
-|   :octave | :current |     2 |     351 |           7 |  54.457939861 |
+|  platform |  version |  cpus |  states |  iterations |          time |
+|-----------|----------|-------|--------:|------------:|--------------:|
+|    matlab |       v2 |     1 |      51 |           7 |   5.207104145 |
+|    matlab |  current |     1 |      51 |           6 |   3.907713917 |
+|    matlab |  current |     2 |      51 |           6 |  12.419206545 |
+|    octave |  current |     1 |      51 |           6 |  13.071235641 |
+|    octave |  current |     2 |      51 |           6 |    7.17819733 |
+|    matlab |       v2 |     1 |     201 |          11 |  28.034113868 |
+|    matlab |  current |     1 |     201 |           6 |  13.927962437 |
+|    matlab |  current |     2 |     201 |           6 |  15.810110641 |
+|    octave |  current |     1 |     201 |           6 |  51.030606245 |
+|    octave |  current |     2 |     201 |           6 |  27.106062606 |
+|    matlab |       v2 |     1 |     351 |          10 |  46.797340215 |
+|    matlab |  current |     1 |     351 |           7 |  28.704807972 |
+|    matlab |  current |     2 |     351 |           7 |  24.197437885 |
+|    octave |  current |     1 |     351 |           7 | 104.151060712 |
+|    octave |  current |     2 |     351 |           7 |  54.457939861 |
 
 The columns are:
 
-Platform
-: The platform that the speed test ran on.  Either "matlab" or
-  "octave".
+ - **Platform**: The platform that the speed test ran on.  Either
+  "matlab" or "octave".
 
-Version
-: The version of InfSOCSol that was used "v2" indicates that the
-  previous version of the code was used ([see here][v2]).  "current"
-  indicates the version in the current working directory.
+ - **Version**: The version of InfSOCSol that was used "v2" indicates
+  that the previous version of the code was used ([see here][v2]).
+  "current" indicates the version in the current working directory.
 
-CPUs
-: The number of concurrent processes used (see Section 8 of the
-  manual).
-
-States
-: The number of state-space points considered (see Section 2.2.2 of
+ - **CPUs**: The number of concurrent processes used (see Section 8 of
   the manual).
 
-Iterations
-: The number of iteratons needed by `iss_solve` in order to converge
-  on a solution.  This is described in Section 3 of the manual.  Note
-  that these speed tests use the default setting of for
-  `PolicyIterations` (25).  Hence, if 25 iterations are seen anywhere
-  in the results, this most likely indicates that convergence did not
-  occur.
+ - **States**: The number of state-space points considered (see
+  Section 2.2.2 of the manual).
 
-Time
-: The number of seconds taken for `iss_solve` to finish.  It is
-  expected that this number will be proportional to the number of CPUs
-  used, and the number of states.  Note however the caveats concerning
-  MATLAB pool startup times, mentioned in Section 8 of the manual.
+ - **Iterations**: The number of iteratons needed by `iss_solve` in
+  order to converge on a solution.  This is described in Section 3 of
+  the manual.  Note that these speed tests use the default setting of
+  for `PolicyIterations` (25).  Hence, if 25 iterations are seen
+  anywhere in the results, this most likely indicates that convergence
+  did not occur.
+
+ - **Time**: The number of seconds taken for `iss_solve` to finish.
+  It is expected that this number will be proportional to the number
+  of CPUs used, and the number of states.  Note however the caveats
+  concerning MATLAB pool startup times, mentioned in Section 8 of the
+  manual.
 
 You can use [functions from Incanter][inc-api] to produce additional
 columns (e.g. time per iteration).
@@ -202,24 +197,26 @@ by the speed tests.  From the REPL type:
 
 **Vi**abaility **K**ernel **A**pproximation, **A**nalysis and
 **S**imulation **A**pplication.  This is a MATLAB/Octave program which
-uses InfSOCSol under the hood to produce viability kernels.  Find
-out more about VIKAASA at its [Google Code page][vikaasa].
+uses InfSOCSol under the hood to produce viability kernels.
+
+Find out more about VIKAASA at its [Google Code page][vikaasa].
 
 [vikaasa]: https://code.google.com/p/vikaasa/
 
 
 ## Authors
 
-Jacek B. Krawczyk
-: Faculty of Commerce and Administration, Victoria University of
-  Wellington, PO Box 600, Wellington, New Zealand.
+ - **Jacek B. Krawczyk**, Faculty of Commerce and Administration, Victoria
+   University of Wellington, PO Box 600, Wellington, New Zealand.
 
-: **Fax:** +64-4-4635014  
-  **Email:** J *dot* Krawczyk *at* vuw *dot* ac *dot* nz  
-  **Webpage:** [http://www.vuw.ac.nz/staff/jacek_krawczyk](http://www.vuw.ac.nz/staff/jacek_krawczyk)
+   **Fax:** +64-4-4635014  
+   **Email:** J *dot* Krawczyk *at* vuw *dot* ac *dot* nz  
+   **Webpage:** [http://www.vuw.ac.nz/staff/jacek_krawczyk][jbk]
 
-[Alastair S. Pharo](https://github.com/asppsa)
-: **Email:** alastair *dot* pharo *at* gmail *dot* com
+ - [Alastair Pharo][asp]
+
+[jbk]: http://www.vuw.ac.nz/staff/jacek_krawczyk
+[asp]: https://github.com/asppsa
 
 
 ## License
