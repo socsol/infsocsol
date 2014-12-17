@@ -1,4 +1,3 @@
-markdown: kramdown
 pygments: true
 github: [Repository metadata]
 baseurl: /infsocsol
