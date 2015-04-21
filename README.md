@@ -7,16 +7,17 @@ Its routines implement a policy improvement algorithm to optimise a
 Markov decision chain approximating the original control problem.
 
 
-## Work in progress
+## Version 3
 
-InfSOCSol is currently a work in progress and may not produce accurate
-results.  If you want to test the software you can
-[download a zip file of the latest revision][latest]
-or checkout the code using git.
+The latest version of InfSOCSol is 3.0.0.  You can
+[download a zip file here][3.0.0].  Alternatively, if you are
+interested in testing the latest alterations to the codebase,
+[you can download a zip file of the most recent bleeding-edge changes here][latest].
 
 Any issues can be reported to the authors via email, or you can
 [lodge an error report in GitHub][issues].
 
+[3.0.0]: https://github.com/socsol/infsocsol/archive/v3.0.0.zip
 [latest]: https://github.com/socsol/infsocsol/zipball/master
 [issues]: https://github.com/socsol/infsocsol/issues/new
 
@@ -43,7 +44,7 @@ are two different sets of tests:
 [mdj]: https://github.com/marick/Midje
 [inc]: http://incanter.org/
 [prof]: https://github.com/thunknyc/profile/
-[cljlab]: https://clojars.org/cljlab/
+[cljlab]: https://clojars.org/cljlab
 
 
 ### Setting up Clojure
