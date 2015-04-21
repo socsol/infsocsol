@@ -1,5 +1,5 @@
-InfSOCSol3
-==========
+InfSOCSol
+=========
 
 A suite of MATLAB routines devised to provide an approximately optimal
 solution to an infinite-horizon stochastic optimal control problem.
