@@ -9,19 +9,20 @@ Its routines implement a policy improvement algorithm to optimise a Markov
 decision chain approximating the original control problem.
 
 
-## Work in progress
+## Version 3
 
-InfSOCSol is currently a work in progress and may not produce accurate
-results.  If you want to test the software you can
-[download a zip file of the latest revision][latest]
-or
-[visit the project's page on GitHub](https://github.com/socsol/infsocsol).
+The latest version of InfSOCSol is 3.0.0.  You can
+[download a zip file here][3.0.0].  Alternatively, if you are
+interested in testing the latest alterations to the codebase,
+[you can download a zip file of the most recent bleeding-edge changes here][latest].
 
 Any issues can be reported to the authors via email, or you can
 [lodge an error report in GitHub][issues].
 
+[3.0.0]: https://github.com/socsol/infsocsol/archive/v3.0.0.zip
 [latest]: https://github.com/socsol/infsocsol/zipball/master
 [issues]: https://github.com/socsol/infsocsol/issues/new
+
 
 ## The manual
 
@@ -46,7 +47,7 @@ are two different sets of tests:
 [mdj]: https://github.com/marick/Midje
 [inc]: http://incanter.org/
 [prof]: https://github.com/thunknyc/profile/
-[cljlab]: https://clojars.org/cljlab/
+[cljlab]: https://clojars.org/cljlab
 
 
 ### Setting up Clojure
@@ -200,7 +201,8 @@ by the speed tests.  From the REPL type:
 
 **Vi**abaility **K**ernel **A**pproximation, **A**nalysis and
 **S**imulation **A**pplication.  This is a MATLAB/Octave program which
-uses InfSOCSol under the hood to produce viability kernels.
+uses InfSOCSol under the hood to compute approximate viability
+kernels.
 
 Find out more about VIKAASA at its [Google Code page][vikaasa].
 
@@ -224,7 +226,7 @@ Find out more about VIKAASA at its [Google Code page][vikaasa].
 
 ## License
 
-Copyright 2014 Jacek B. Krawczyk and Alastair Pharo.  Distributed
+Copyright 2015 Jacek B. Krawczyk and Alastair Pharo.  Distributed
 under [the Apache License, Version 2.0][apache].
 
 [apache]: http://www.apache.org/licenses/LICENSE-2.0
