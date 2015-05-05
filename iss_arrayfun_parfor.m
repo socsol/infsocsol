@@ -21,7 +21,7 @@
 % See also: arrayfun, pararrayfun, parfor
 
 %%
-%  Copyright 2014 Jacek B. Krawczyk and Alastair Pharo
+%  Copyright 2015 Jacek B. Krawczyk and Alastair Pharo
 %
 %  Licensed under the Apache License, Version 2.0 (the "License");
 %  you may not use this file except in compliance with the License.
@@ -79,11 +79,7 @@ function varargout = iss_arrayfun_parfor(numprocs, fun, varargin)
 
 
   %% Start the pool, unless its already started
-  handle_pool = 0;
-  if matlabpool('size') == 0 && isempty(getCurrentJob)
-    handle_pool = 1;
-    matlabpool(numprocs);
-  end
+  handle_pool = iss_pool_start(numprocs);
 
 
   %% Construct return cell
@@ -105,21 +101,13 @@ function varargout = iss_arrayfun_parfor(numprocs, fun, varargin)
       [rets{i}{:}] = fun(args{:});
     end
   catch exception
-    fprintf('Error:\n');
-    disp(exception);
-
-    if handle_pool
-      matlabpool close;
-    end
-
+    iss_pool_stop(handle_pool);
     rethrow(exception);
   end
 
 
   %% Close the pool
-  if handle_pool
-    matlabpool close;
-  end
+  iss_pool_stop(handle_pool);
 
 
   %% Construct the output cell arrays
