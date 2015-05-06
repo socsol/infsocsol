@@ -222,7 +222,7 @@ Find out more about VIKAASA at its [Google Code page][vikaasa].
 
 ## License
 
-Copyright 2014 Jacek B. Krawczyk and Alastair Pharo.  Distributed
+Copyright 2015 Jacek B. Krawczyk and Alastair Pharo.  Distributed
 under [the Apache License, Version 2.0][apache].
 
 [apache]: http://www.apache.org/licenses/LICENSE-2.0
