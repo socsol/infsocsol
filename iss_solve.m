@@ -24,10 +24,7 @@ function [OCM, UOptimal, Value, Errors, Iterations] = ...
   open_pool = 0;
   try
     if (Conf.Options.PoolSize > 1 && strcmp(Conf.System, 'matlab'))
-      if matlabpool('size') == 0
-        open_pool = 1;
-        matlabpool(Conf.Options.PoolSize);
-      end
+      open_pool = iss_pool_start(Conf.Options.PoolSize);
     end
 
     Options = Conf.Options;
@@ -143,15 +140,10 @@ function [OCM, UOptimal, Value, Errors, Iterations] = ...
       fprintf(' * All iterations were used.\n');
     end
 
-    if open_pool
-      matlabpool close
-    end
+    iss_pool_stop(open_pool);
   catch
     exception = lasterror();
-
-    if open_pool
-      matlabpool close
-    end
+    iss_pool_stop(open_pool);
 
     %exception.stack(2)
     rethrow(exception);
