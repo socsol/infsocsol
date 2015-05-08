@@ -204,9 +204,9 @@ by the speed tests.  From the REPL type:
 uses InfSOCSol under the hood to compute approximate viability
 kernels.
 
-Find out more about VIKAASA at its [Google Code page][vikaasa].
+Find out more about VIKAASA at [its homepage][vikaasa].
 
-[vikaasa]: https://code.google.com/p/vikaasa/
+[vikaasa]: http://socsol.github.io/vikaasa/
 
 
 ## Authors
