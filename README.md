@@ -9,15 +9,15 @@ Markov decision chain approximating the original control problem.
 
 ## Version 3
 
-The latest version of InfSOCSol is 3.0.0.  You can
-[download a zip file here][3.0.0].  Alternatively, if you are
+The latest version of InfSOCSol is 3.0.1.  You can
+[download a zip file here][v3].  Alternatively, if you are
 interested in testing the latest alterations to the codebase,
 [you can download a zip file of the most recent bleeding-edge changes here][latest].
 
 Any issues can be reported to the authors via email, or you can
 [lodge an error report in GitHub][issues].
 
-[3.0.0]: https://github.com/socsol/infsocsol/archive/v3.0.0.zip
+[v3]: https://github.com/socsol/infsocsol/archive/v3.0.1.zip
 [latest]: https://github.com/socsol/infsocsol/zipball/master
 [issues]: https://github.com/socsol/infsocsol/issues/new
 
