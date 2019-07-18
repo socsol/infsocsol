@@ -112,7 +112,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
   Conf.Options = iss_conf_validate(StateLB, StateUB, Conf.Options);
 
   %% Figure out what system this is
-  if exist('octave_config_info', 'builtin')
+  if exist('OCTAVE_VERSION', 'builtin')
     Conf.System = 'octave';
 
     % Check for the presence of the 'optim' package in Octave
@@ -132,10 +132,10 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
 
   %% An option should state which optimization routine to use.
   if ~isfield(Conf.Options, 'Optimizer')
-    if (exist('fmincon', 'file'))
-      Conf.Options.Optimizer = 'fmincon';
-    elseif (exist('nonlin_min', 'file'))
+    if (exist('nonlin_min', 'file'))
       Conf.Options.Optimizer = 'nonlin_min';
+    elseif (exist('fmincon', 'file'))
+      Conf.Options.Optimizer = 'fmincon';
     elseif (exist('sqp', 'file'))
       Conf.Options.Optimizer = 'sqp';
     else
@@ -148,7 +148,7 @@ function Conf = iss_conf(StateLB, StateUB, varargin)
     Conf.FminconOptions = optimset(Conf.Options);
     Conf.Optimizer = @iss_optim_fmincon;
   elseif strcmp(Conf.Options.Optimizer, 'nonlin_min')
-    Conf.NonlinMinOptions = optimset(Conf.Options);
+    Conf.NonlinMinOptions = optimset('Algorithm', Conf.Options.Algorithm);
     Conf.Optimizer = @iss_optim_nonlin_min;
   elseif strcmp(Conf.Options.Optimizer, 'sqp')
     warning(['Using "sqp".  Better performance can often be achieved ' ...
