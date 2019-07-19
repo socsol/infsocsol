@@ -6,3 +6,6 @@
 *.DPP
 *.DPS
 *.zip
+__pycache__
+octave-workspace
+/v2
