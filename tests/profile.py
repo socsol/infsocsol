@@ -14,10 +14,11 @@
 
 from timeit import timeit
 from infsocsol.helpers import matlab_engine, octave_engine
+import pandas as pd
 import os
 
 engines = {}
-def engine_for(platform, root=None):
+def engine_for(rec):
     global engines
 
     constructors = {
@@ -25,47 +26,54 @@ def engine_for(platform, root=None):
         'octave': octave_engine
     }
 
+    platform = rec['platform']
+    root = None if rec['version'] == 'current' else rec['version']
     key = f'{platform}+{root}' if root else platform
     if key not in engines:
         engines[key] = constructors[platform](root)
 
     return engines[key]
 
-iterations = 0
-def example_a_current(platform, cpus, states):
-    global iterations
-    engine = engine_for(platform)
-    engine.cd(os.path.join(os.path.dirname(os.path.realpath(__file__)), "example_a_speed"))
-    iterations = int(engine.solve_current(cpus, float(states)))
+def cd(engine, path):
+    engine.cd(os.path.join(os.path.dirname(os.path.realpath(__file__)), path))
 
-def example_a_v2(states):
-    engine = engine_for('matlab', 'v2')
-    engine.cd(os.path.join(os.path.dirname(os.path.realpath(__file__)), "example_a_speed"))
-    engine.solve_v2(float(states))
+def example_a_current(engine, rec):
+    cd(engine, "example_a_speed")
+    engine.solve_current(rec['cpus'], float(rec['states']))
 
-def fisheries_det_basic_current(platform, cpus, states, time_step):
-    global iterations
-    engine = engine_for(platform)
-    engine.cd(os.path.join(os.path.dirname(os.path.realpath(__file__)), "fisheries_det_basic_speed"))
-    iterations = int(engine.solve_current(cpus, states, time_step))
+def example_a_v2(engine, rec):
+    cd(engine, "example_a_speed")
+    engine.solve_v2(float(rec['states']))
 
-def fisheries_det_basic_v2(states, time_step):
-    engine = engine_for('matlab', 'v2')
-    engine.cd(os.path.join(os.path.dirname(os.path.realpath(__file__)), "fisheries_det_basic_speed"))
-    engine.solve_v2(states, time_step)
+def fisheries_det_basic_current(engine, rec):
+    cd(engine, "fisheries_det_basic_speed")
+    engine.solve_current(rec['cpus'], float(rec['states']), float(rec['time_step']))
 
-def run_profile(rec, stmt):
+def fisheries_det_basic_v2(engine, rec):
+    cd(engine, "fisheries_det_basic_speed")
+    engine.solve_v2(float(rec['states']), float(rec['time_step']))
+
+def run_profile(fn, rec):
     """
-    run
+    Profile the calling of the function with the argument
     """
-    global iterations
-    iterations = None
-    time = timeit(stmt=stmt, number=1, globals=globals())
-    rec['time'] = time
-    rec['iterations'] = iterations
-    return rec
 
-def profile_example_a(samples, max_cpus):
+    engine = engine_for(rec)
+
+    # Start the matlab worker pool before profiling
+    use_pool = rec['platform'] == 'matlab' and rec['cpus'] > 1
+    if use_pool:
+        handle = engine.iss_pool_start(rec['cpus'])
+    time = timeit(stmt="fn(engine, rec)", number=3, globals={ 'fn': fn, 'engine': engine, 'rec': rec })
+    if use_pool:
+        engine.iss_pool_stop(handle)
+
+    ret = {'time': time}
+    ret.update(rec)
+
+    return ret
+
+def profile_example_a(samples):
     """
     Profiling of example A
     """
@@ -74,25 +82,58 @@ def profile_example_a(samples, max_cpus):
         states = 51 + 150*i
 
         # Run the ISS2 code on MATLAB
-        results.append(run_profile({
+        results.append(run_profile(example_a_v2, {
             'platform': 'matlab',
             'cpus': 1,
             'version': 'v2',
             'states': states
-        }, f'example_a_v2({states})'))
+        }))
 
         for platform in ['matlab', 'octave']:
-            for cpus in range(1, max_cpus+1):
-                results.append(run_profile({
+            for cpus in range(1, os.cpu_count() + 1):
+                results.append(run_profile(example_a_current, {
                     'platform': platform,
                     'cpus': cpus,
                     'version': 'current',
                     'states': states
-                }, f'example_a_current("{platform}", {cpus}, {states})'))
+                }))
 
-    return results
+    return pd.DataFrame(results).pivot_table(
+        index='states',
+        columns=['version', 'platform', 'cpus'],
+        values='time'
+    )
 
-if __name__ == '__main__':
-    results = profile_example_a(4, 4)
-    import pandas as pd
-    print(pd.DataFrame(results))
+def profile_fisheries_det_basic(samples):
+    """
+    Profiling of deterministic fisheries model
+    """
+    results = []
+    for i in range(0, samples):
+        states = 2**i * 10
+        time_step = 2**-i
+
+        # Run the ISS2 code on MATLAB
+        results.append(run_profile(fisheries_det_basic_v2, {
+            'platform': 'matlab',
+            'cpus': 1,
+            'version': 'v2',
+            'states': states,
+            'time_step': time_step
+        }))
+
+        for platform in ['matlab', 'octave']:
+            for cpus in range(1, os.cpu_count() + 1):
+                results.append(run_profile(fisheries_det_basic_current, {
+                    'platform': platform,
+                    'cpus': cpus,
+                    'version': 'current',
+                    'states': states,
+                    'time_step': time_step
+                }))
+
+    return pd.DataFrame(results).pivot_table(
+        index=['states', 'time_step'],
+        columns=['version', 'platform', 'cpus'],
+        values='time'
+    )
