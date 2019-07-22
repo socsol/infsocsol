@@ -99,6 +99,14 @@ order to check:
 2. whether the overall time taken remains proportional to the number
    of states and CPUs.
 
+In order to run the v2 speed tests, you need a copy of InfSOCSol2 in a folder
+called `v2`.  If you checked this project out using git, you can achieve this
+by typing the following:
+
+~~~ bash
+git archive v2 | tar -x --one-top-level=v2
+~~~
+
 Currently speed tests can be run on two different problems:
 
 - `profile_example_a` will run speed tests on the "simple example"
