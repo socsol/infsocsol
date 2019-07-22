@@ -64,7 +64,7 @@ def run_profile(fn, rec):
     use_pool = rec['platform'] == 'matlab' and rec['cpus'] > 1
     if use_pool:
         handle = engine.iss_pool_start(rec['cpus'])
-    time = timeit(stmt="fn(engine, rec)", number=3, globals={ 'fn': fn, 'engine': engine, 'rec': rec })
+    time = timeit(stmt="fn(engine, rec)", number=1, globals={ 'fn': fn, 'engine': engine, 'rec': rec })
     if use_pool:
         engine.iss_pool_stop(handle)
 
@@ -73,14 +73,12 @@ def run_profile(fn, rec):
 
     return ret
 
-def profile_example_a(samples):
+def profile_example_a(rng):
     """
     Profiling of example A
     """
     results = []
-    for i in range(0, samples):
-        states = 51 + 150*i
-
+    for states in rng:
         # Run the ISS2 code on MATLAB
         results.append(run_profile(example_a_v2, {
             'platform': 'matlab',
@@ -90,7 +88,7 @@ def profile_example_a(samples):
         }))
 
         for platform in ['matlab', 'octave']:
-            for cpus in range(1, os.cpu_count() + 1):
+            for cpus in [1, os.cpu_count()]:
                 results.append(run_profile(example_a_current, {
                     'platform': platform,
                     'cpus': cpus,
@@ -104,15 +102,13 @@ def profile_example_a(samples):
         values='time'
     )
 
-def profile_fisheries_det_basic(samples):
+def profile_fisheries_det_basic(rng):
     """
     Profiling of deterministic fisheries model
     """
     results = []
-    for i in range(0, samples):
-        states = 2**i * 10
-        time_step = 2**-i
-
+    time_step = 1
+    for states in rng:
         # Run the ISS2 code on MATLAB
         results.append(run_profile(fisheries_det_basic_v2, {
             'platform': 'matlab',
@@ -123,7 +119,7 @@ def profile_fisheries_det_basic(samples):
         }))
 
         for platform in ['matlab', 'octave']:
-            for cpus in range(1, os.cpu_count() + 1):
+            for cpus in [1, os.cpu_count()]:
                 results.append(run_profile(fisheries_det_basic_current, {
                     'platform': platform,
                     'cpus': cpus,

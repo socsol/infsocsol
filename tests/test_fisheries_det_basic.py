@@ -17,7 +17,7 @@ import numpy
 import os
 import scipy
 from numpy.testing import assert_allclose
-from conftest import matrix
+from infsocsol.helpers import matrix
 
 @pytest.fixture(scope="module", params=[
     # engine    states time_step start         steps  steady steady_accuracy optim_accuracy
